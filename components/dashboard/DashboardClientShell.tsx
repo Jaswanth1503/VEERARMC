@@ -34,6 +34,7 @@ const roleMenus: Record<string, any[]> = {
   ],
   'Customer': [
     { label: "Dashboard", href: "/dashboard/customer", icon: <Home className="w-5 h-5" /> },
+    { label: "Executive BI Hub", href: "/analytics", icon: <BarChart3 className="w-5 h-5 text-emerald-400" /> },
     { label: "Orders Hub", href: "/orders", icon: <Package className="w-5 h-5 text-accent-orange" /> },
     { label: "Live Deliveries", href: "/logistics", icon: <Navigation className="w-5 h-5 text-sky-400" /> },
     { label: "AI Assistant", href: "/ai-assistant", icon: <Sparkles className="w-5 h-5 text-amber-400" /> },
@@ -50,6 +51,7 @@ const roleMenus: Record<string, any[]> = {
   ],
   'Contractor': [
     { label: "Dashboard", href: "/dashboard/contractor", icon: <Home className="w-5 h-5" /> },
+    { label: "Executive BI Hub", href: "/analytics", icon: <BarChart3 className="w-5 h-5 text-emerald-400" /> },
     { label: "Orders Hub", href: "/orders", icon: <Package className="w-5 h-5 text-accent-orange" /> },
     { label: "Logistics", href: "/logistics", icon: <Navigation className="w-5 h-5 text-sky-400" /> },
     { label: "AI Assistant", href: "/ai-assistant", icon: <Sparkles className="w-5 h-5 text-amber-400" /> },

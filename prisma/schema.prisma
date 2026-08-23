@@ -1,0 +1,1347 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid()) @db.Uuid
+  firebaseUid   String    @unique
+  fullName      String
+  email         String    @unique
+  phone         String?
+  profileImage  String?
+  roleId        String    @db.Uuid
+  companyId     String?   @db.Uuid
+  status        String    @default("ACTIVE") // ACTIVE, INACTIVE, SUSPENDED
+  emailVerified Boolean   @default(false)
+  lastLogin     DateTime?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  role          Role      @relation(fields: [roleId], references: [id])
+  company       Company?  @relation(fields: [companyId], references: [id])
+
+  // New Relations
+  employeeProfile EmployeeProfile?
+  supplierProfile SupplierProfile?
+  
+  orders        Order[]         @relation("CustomerOrders")
+  contractorOrders Order[]      @relation("ContractorOrders")
+  projects      Project[]       @relation("CustomerProjects")
+  contractorProjects Project[]  @relation("ContractorProjects")
+  invoices      Invoice[]
+  notifications Notification[]
+  supportTickets SupportTicket[]
+  conversations Conversation[]
+  aiFeedback    MessageFeedback[]
+  quotes        Quote[]         @relation("UserQuotes")
+  blueprintAnalyses BlueprintAnalysis[]
+  recommendations Recommendation[]
+  qualityPredictions QualityPrediction[]
+}
+
+model EmployeeProfile {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @unique @db.Uuid
+  department  String?
+  designation String?
+  salary      Float?
+  hireDate    DateTime?
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attendances Attendance[]
+  trucks      Truck[]  @relation("TruckDriver")
+}
+
+model SupplierProfile {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @unique @db.Uuid
+  materialTypes   String[] // e.g. ["Cement", "Aggregate", "Admixture"]
+  rating          Float    @default(0.0)
+  activeContracts Int      @default(0)
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Role {
+  id          String   @id @default(uuid()) @db.Uuid
+  roleName    String   @unique
+  description String?
+  priority    Int      @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       User[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id             String   @id @default(uuid()) @db.Uuid
+  permissionName String   @unique
+  module         String
+  description    String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  roles          RolePermission[]
+}
+
+model RolePermission {
+  id           String   @id @default(uuid()) @db.Uuid
+  roleId       String   @db.Uuid
+  permissionId String   @db.Uuid
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+}
+
+model Company {
+  id            String   @id @default(uuid()) @db.Uuid
+  companyName   String
+  gstNumber     String?
+  address       String?
+  city          String?
+  state         String?
+  country       String?
+  contactEmail  String?
+  contactPhone  String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+
+  users         User[]
+}
+
+model Order {
+  id                    String   @id @default(uuid()) @db.Uuid
+  orderNumber           String   @unique // VRMC-ORD-2026-00001
+  customerId            String   @db.Uuid
+  contractorId          String?  @db.Uuid
+  projectId             String?  @db.Uuid
+  quoteId               String?  @db.Uuid
+  blueprintAnalysisId   String?  @db.Uuid
+
+  status                String   @default("DRAFT") // DRAFT, SUBMITTED, UNDER_REVIEW, APPROVED, PRODUCTION_SCHEDULED, IN_PRODUCTION, READY_FOR_DISPATCH, IN_TRANSIT, DELIVERED, REJECTED, CANCELLED, ON_HOLD, FAILED
+  priority              String   @default("NORMAL") // LOW, NORMAL, HIGH, CRITICAL
+
+  // Quantities & Financials
+  concreteGrade         String   @default("M25") // Primary grade (or summary if multi-item)
+  quantity              Float    @default(0)     // Primary quantity (or total m³)
+  totalQuantity         Float    @default(0)     // in m³
+  unitPrice             Float    @default(4500)
+  subtotal              Float    @default(0)
+  taxAmount             Float    @default(0)
+  totalAmount           Float    @default(0)
+  estimatedValue        Float    @default(0)
+
+  // Delivery & Pour Details
+  deliveryDate          DateTime @default(now())
+  requestedDeliveryDate DateTime @default(now())
+  actualDeliveryDate    DateTime?
+  preferredTimeWindow   String?  @default("08:00 AM - 12:00 PM")
+  deliveryAddress       String?
+  siteCity              String?  @default("Pune")
+  pincode               String?
+  siteContactName       String?
+  siteContactPhone      String?
+  pumpRequired          Boolean  @default(false)
+  pumpType              String?
+  specialInstructions   String?
+
+  // AI Order Intelligence
+  aiSummary             String?
+  aiRiskLevel           String?  @default("LOW") // LOW, MEDIUM, HIGH, CRITICAL
+  aiRisks               String[]
+  aiRecommendations     String[]
+  aiConfidence          String?  @default("HIGH") // HIGH, MEDIUM, LOW
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  customer              User     @relation("CustomerOrders", fields: [customerId], references: [id])
+  contractor            User?    @relation("ContractorOrders", fields: [contractorId], references: [id])
+  project               Project? @relation(fields: [projectId], references: [id])
+  quote                 Quote?   @relation(fields: [quoteId], references: [id])
+  blueprintAnalysis     BlueprintAnalysis? @relation(fields: [blueprintAnalysisId], references: [id])
+
+  invoices              Invoice[]
+  recommendations       Recommendation[]
+  deliveryPlans         DeliveryPlan[]
+  productionPlans       ProductionPlan[]
+  trips                 DeliveryTrip[]
+  items                 OrderItem[]
+  statusHistory         OrderStatusHistory[]
+  approvals             OrderApproval[]
+  deliverySchedules     DeliverySchedule[]
+  documents             OrderDocument[]
+  comments              OrderComment[]
+  notifications         OrderNotification[]
+
+  @@index([customerId])
+  @@index([projectId])
+  @@index([status])
+  @@index([orderNumber])
+}
+
+model Project {
+  id            String   @id @default(uuid()) @db.Uuid
+  projectName   String
+  location      String?
+  status        String   @default("ACTIVE") // ACTIVE, COMPLETED, ON_HOLD
+  customerId    String   @db.Uuid
+  contractorId  String?  @db.Uuid
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  customer      User     @relation("CustomerProjects", fields: [customerId], references: [id])
+  contractor    User?    @relation("ContractorProjects", fields: [contractorId], references: [id])
+  orders        Order[]
+  invoices      Invoice[]
+  quotes        Quote[]
+  blueprintAnalyses BlueprintAnalysis[]
+  recommendations Recommendation[]
+  deliveryPlans DeliveryPlan[]
+  qualityPredictions QualityPrediction[]
+}
+
+model Truck {
+  id            String   @id @default(uuid()) @db.Uuid
+  licensePlate  String   @unique
+  capacity      Float    // in cubic meters
+  status        String   @default("AVAILABLE") // AVAILABLE, ON_DELIVERY, MAINTENANCE
+  driverId      String?  @db.Uuid
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  driver        EmployeeProfile? @relation("TruckDriver", fields: [driverId], references: [id])
+}
+
+model Inventory {
+  id            String   @id @default(uuid()) @db.Uuid
+  itemName      String   @unique
+  category      String   // CEMENT, AGGREGATE, ADMIXTURE, FUEL
+  currentStock  Float    @default(0)
+  unit          String   // TON, LITER, KG
+  minimumStock  Float    @default(0)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Invoice {
+  id            String   @id @default(uuid()) @db.Uuid
+  invoiceNumber String   @unique
+  amount        Float
+  status        String   @default("UNPAID") // UNPAID, PAID, OVERDUE
+  dueDate       DateTime
+  userId        String   @db.Uuid
+  orderId       String?  @db.Uuid
+  projectId     String?  @db.Uuid
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user          User     @relation(fields: [userId], references: [id])
+  order         Order?   @relation(fields: [orderId], references: [id])
+  project       Project? @relation(fields: [projectId], references: [id])
+}
+
+model Attendance {
+  id            String   @id @default(uuid()) @db.Uuid
+  employeeId    String   @db.Uuid
+  date          DateTime
+  checkIn       DateTime?
+  checkOut      DateTime?
+  status        String   @default("PRESENT") // PRESENT, ABSENT, HALF_DAY, LEAVE
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  employee      EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  
+  @@unique([employeeId, date])
+}
+
+model SupportTicket {
+  id            String   @id @default(uuid()) @db.Uuid
+  ticketNumber  String   @unique
+  subject       String
+  description   String
+  status        String   @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, CLOSED
+  priority      String   @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
+  userId        String   @db.Uuid
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+model Notification {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @db.Uuid
+  title         String
+  message       String
+  type          String   @default("INFO") // INFO, WARNING, SUCCESS, ALERT
+  isRead        Boolean  @default(false)
+  linkUrl       String?
+
+  createdAt     DateTime @default(now())
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Conversation {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @db.Uuid
+  title       String    @default("New Chat")
+  isArchived  Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages    Message[]
+}
+
+model Message {
+  id             String          @id @default(uuid()) @db.Uuid
+  conversationId String          @db.Uuid
+  role           String          // 'user' | 'assistant' | 'system'
+  content        String
+  tokensUsed     Int?            @default(0)
+  createdAt      DateTime        @default(now())
+
+  conversation   Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sources        MessageSource[]
+  feedback       MessageFeedback[]
+}
+
+model MessageSource {
+  id             String   @id @default(uuid()) @db.Uuid
+  messageId      String   @db.Uuid
+  documentId     String?
+  documentName   String
+  title          String?
+  section        String?
+  page           Int?
+  sourceUrl      String?
+  relevanceScore Float    @default(0)
+  createdAt      DateTime @default(now())
+
+  message        Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+}
+
+model MessageFeedback {
+  id           String   @id @default(uuid()) @db.Uuid
+  messageId    String   @db.Uuid
+  userId       String   @db.Uuid
+  rating       String   // 'POSITIVE' | 'NEGATIVE'
+  feedbackText String?
+  createdAt    DateTime @default(now())
+
+  message      Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ConcreteGrade {
+  id                  String   @id @default(uuid()) @db.Uuid
+  gradeCode           String   @unique // M10, M15, M20, M25, M30, M35, M40, M50
+  name                String   // e.g. "Grade M25 Standard RCC"
+  description         String?
+  nominalMix          String?  // e.g. "1:1:2"
+  compressiveStrength Float    // in MPa (e.g. 25)
+  standardSlumpMin    Float    @default(100)
+  standardSlumpMax    Float    @default(150)
+  applications        String[]
+  basePricePerM3      Float    @default(4500) // Base INR per m³
+  isAvailable         Boolean  @default(true)
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  priceRules          PriceRule[]
+  quoteItems          QuoteItem[]
+}
+
+model PriceRule {
+  id              String        @id @default(uuid()) @db.Uuid
+  concreteGradeId String        @db.Uuid
+  minVolume       Float         @default(0)
+  maxVolume       Float         @default(10000)
+  pricePerM3      Float
+  isActive        Boolean       @default(true)
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  concreteGrade   ConcreteGrade @relation(fields: [concreteGradeId], references: [id], onDelete: Cascade)
+}
+
+model TransportRate {
+  id             String   @id @default(uuid()) @db.Uuid
+  minDistanceKm  Float    @default(0)
+  maxDistanceKm  Float    @default(50)
+  flatRate       Float    @default(500)
+  ratePerKmM3    Float    @default(15)
+  minCharge      Float    @default(1000)
+  isActive       Boolean  @default(true)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model PumpRate {
+  id             String   @id @default(uuid()) @db.Uuid
+  pumpType       String   @unique // LINE_PUMP, BOOM_PUMP_24M, BOOM_PUMP_42M
+  baseRate       Float    @default(3500)
+  ratePerM3      Float    @default(150)
+  minQuantity    Float    @default(20)
+  isActive       Boolean  @default(true)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model TaxRate {
+  id             String   @id @default(uuid()) @db.Uuid
+  name           String   @default("GST")
+  ratePercent    Float    @default(18.0)
+  isDefault      Boolean  @default(true)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model DiscountRule {
+  id                String   @id @default(uuid()) @db.Uuid
+  code              String   @unique
+  description       String?
+  discountPercent   Float    @default(0)
+  maxDiscountAmount Float    @default(10000)
+  minOrderVolume    Float    @default(0)
+  isActive          Boolean  @default(true)
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Quote {
+  id                       String               @id @default(uuid()) @db.Uuid
+  quoteNumber              String               @unique // VRMC-2026-000001
+  userId                   String?              @db.Uuid
+  customerId               String?              @db.Uuid
+  projectId                String?              @db.Uuid
+  version                  Int                  @default(1)
+  status                   String               @default("GENERATED") // DRAFT, GENERATED, PENDING_REVIEW, SENT, VIEWED, ACCEPTED, REJECTED, EXPIRED, CANCELLED, CONVERTED_TO_ORDER
+
+  // Step 1: Project Details
+  projectName              String
+  projectType              String               // Residential, Commercial, Industrial, Infrastructure, etc.
+  constructionCategory     String?
+  customerName             String
+  companyName              String?
+  phone                    String
+  email                    String
+  siteAddress              String
+  city                     String
+  state                    String
+  pincode                  String
+  projectDescription       String?
+
+  // Step 2: Construction Details
+  floors                   Int?                 @default(1)
+  builtUpArea              Float?
+  constructionStage        String?
+  estimatedDuration        String?
+  pouringFrequency         String?
+  estimatedPourDate        DateTime?
+  projectScale             String?
+  constructionType         String?
+  lengthMeters             Float?
+  widthMeters              Float?
+  heightMeters             Float?
+
+  // Step 3 & 4: Requirements & Delivery
+  concreteGradeCode        String
+  requiredQuantity         Float                // In M3
+  inputUnit                String               @default("M3") // M3, CUFT, CUYD, LITERS
+  inputQuantity            Float                // Original quantity requested in inputUnit
+  wastagePercent           Float                @default(5.0)
+  calculatedVolumeM3       Float
+  slumpRequirement         String?              @default("100-150 mm")
+  specialRequirements      String?
+  preferredDeliveryWindow  String?
+  pumpRequired             Boolean              @default(false)
+  pumpType                 String?
+  siteAccessNotes          String?
+
+  // Financial Breakdown (Calculated Deterministically)
+  subtotal                 Float
+  transportCost            Float                @default(0)
+  pumpCost                 Float                @default(0)
+  discountAmount           Float                @default(0)
+  taxableAmount            Float
+  taxAmount                Float
+  totalAmount              Float
+  currency                 String               @default("INR")
+
+  // AI Analysis (Qualitative Reasoning JSON)
+  aiSummary                String?
+  aiRecommendedGrade       String?
+  aiQuantityExplanation    String?
+  aiDeliveryRecommendation String?
+  aiRiskNotes              Json?
+  aiCustomerNotes          Json?
+
+  // Expiry & Conversion
+  validUntil               DateTime
+  acceptedAt               DateTime?
+  acceptedBy               String?
+  orderId                  String?              @db.Uuid
+
+  createdAt                DateTime             @default(now())
+  updatedAt                DateTime             @updatedAt
+
+  user                     User?                @relation("UserQuotes", fields: [userId], references: [id])
+  project                  Project?             @relation(fields: [projectId], references: [id])
+  orders                   Order[]
+  items                    QuoteItem[]
+  versions                 QuoteVersion[]
+  history                  QuoteStatusHistory[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([quoteNumber])
+}
+
+model QuoteItem {
+  id              String         @id @default(uuid()) @db.Uuid
+  quoteId         String         @db.Uuid
+  concreteGradeId String?        @db.Uuid
+  gradeCode       String
+  quantityM3      Float
+  unit            String         @default("M3")
+  unitPrice       Float
+  subtotal        Float
+  description     String?
+
+  quote           Quote          @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  concreteGrade   ConcreteGrade? @relation(fields: [concreteGradeId], references: [id])
+}
+
+model QuoteVersion {
+  id            String   @id @default(uuid()) @db.Uuid
+  quoteId       String   @db.Uuid
+  versionNumber Int
+  snapshotData  Json
+  changedBy     String?
+  changeReason  String?
+  createdAt     DateTime @default(now())
+
+  quote         Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@unique([quoteId, versionNumber])
+}
+
+model QuoteStatusHistory {
+  id         String   @id @default(uuid()) @db.Uuid
+  quoteId    String   @db.Uuid
+  fromStatus String?
+  toStatus   String
+  changedBy  String?
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  quote      Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+}
+
+model BlueprintAnalysis {
+  id                    String                   @id @default(uuid()) @db.Uuid
+  userId                String?                  @db.Uuid
+  projectId             String?                  @db.Uuid
+  title                 String
+  documentType          String                   @default("Structural Drawing") // Architectural, Structural, Floor Plan, Column Schedule, etc.
+  status                String                   @default("COMPLETED") // UPLOADED, VALIDATING, PROCESSING, PARSING, ANALYZING, REVIEW_REQUIRED, COMPLETED, FAILED
+  version               Int                      @default(1)
+  
+  // Executive Summary & AI Findings
+  summary               String?
+  buildingType          String?
+  estimatedAreaSqFt     Float?
+  floorsDetected        Int?                     @default(1)
+  overallConfidence     String                   @default("HIGH") // HIGH, MEDIUM, LOW
+
+  // Estimated Concrete Quantities (Calculated Deterministically)
+  totalConcreteM3       Float                    @default(0)
+  recommendedGrade      String?                  @default("M25")
+
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
+
+  user                  User?                    @relation(fields: [userId], references: [id])
+  project               Project?                 @relation(fields: [projectId], references: [id])
+  files                 BlueprintFile[]
+  findings              BlueprintFinding[]
+  measurements          BlueprintMeasurement[]
+  recommendations       BlueprintRecommendation[]
+  versions              BlueprintAnalysisVersion[]
+  orders                Order[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+model BlueprintFile {
+  id           String            @id @default(uuid()) @db.Uuid
+  analysisId   String            @db.Uuid
+  fileName     String
+  originalName String
+  mimeType     String
+  size         Int
+  storageKey   String
+  storagePath  String
+  pageCount    Int               @default(1)
+
+  createdAt    DateTime          @default(now())
+
+  analysis     BlueprintAnalysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  pages        BlueprintPage[]
+}
+
+model BlueprintPage {
+  id            String        @id @default(uuid()) @db.Uuid
+  fileId        String        @db.Uuid
+  pageNumber    Int
+  extractedText String?
+  metadata      Json?
+
+  createdAt     DateTime      @default(now())
+
+  file          BlueprintFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+}
+
+model BlueprintFinding {
+  id          String            @id @default(uuid()) @db.Uuid
+  analysisId  String            @db.Uuid
+  category    String            // STRUCTURAL, GRADE_SPEC, MISSING_INFO, CONFLICT, RISK
+  severity    String            @default("INFO") // INFO, LOW, MEDIUM, HIGH, CRITICAL
+  title       String
+  description String
+  sourcePage  Int?              @default(1)
+  confidence  String            @default("HIGH") // HIGH, MEDIUM, LOW
+
+  createdAt   DateTime          @default(now())
+
+  analysis    BlueprintAnalysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+}
+
+model BlueprintMeasurement {
+  id              String            @id @default(uuid()) @db.Uuid
+  analysisId      String            @db.Uuid
+  elementCategory String            // SLAB, COLUMN, BEAM, FOOTING, FOUNDATION, WALL
+  label           String            // e.g. "C1-C12 Ground Columns", "Main Slab S1"
+  lengthMeters    Float?
+  widthMeters     Float?
+  heightMeters    Float?
+  areaSqFt        Float?
+  quantityCount   Int               @default(1)
+  calculatedVolM3 Float             @default(0)
+  specifiedGrade  String?           @default("M25")
+  confidence      String            @default("HIGH") // HIGH, MEDIUM, LOW
+  sourcePage      Int?              @default(1)
+
+  createdAt       DateTime          @default(now())
+
+  analysis        BlueprintAnalysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+}
+
+model BlueprintRecommendation {
+  id             String            @id @default(uuid()) @db.Uuid
+  analysisId     String            @db.Uuid
+  category       String            // CONCRETE_MIX, POURING_LOGISTICS, CURING, SITE_ACCESS
+  recommendation String
+  confidence     String            @default("HIGH")
+  source         String?
+
+  createdAt      DateTime          @default(now())
+
+  analysis       BlueprintAnalysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+}
+
+model BlueprintAnalysisVersion {
+  id            String            @id @default(uuid()) @db.Uuid
+  analysisId    String            @db.Uuid
+  versionNumber Int
+  snapshotData  Json
+  changedBy     String?
+  changeReason  String?
+
+  createdAt     DateTime          @default(now())
+
+  analysis      BlueprintAnalysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  @@unique([analysisId, versionNumber])
+}
+
+model BatchingPlant {
+  id              String            @id @default(uuid()) @db.Uuid
+  code            String            @unique // PLANT-01
+  name            String            // e.g. "Veera RMC Central Plant 01"
+  address         String
+  city            String
+  pincode         String
+  latitude        Float?
+  longitude       Float?
+  dailyCapacityM3 Float             @default(1500)
+  capacityPerHour Float             @default(120) // in m³/hour
+  status          String            @default("ACTIVE") // ACTIVE, MAINTENANCE, OFFLINE
+  contactPhone    String?
+  managerName     String?
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  deliveryPlans   DeliveryPlan[]
+  productionPlans ProductionPlan[]
+  capacities      PlantCapacity[]
+  queues          ProductionQueue[]
+}
+
+model Recommendation {
+  id                  String               @id @default(uuid()) @db.Uuid
+  userId              String?              @db.Uuid
+  projectId           String?              @db.Uuid
+  orderId             String?              @db.Uuid
+  quoteId             String?              @db.Uuid
+  blueprintAnalysisId String?              @db.Uuid
+  type                String               @default("PROJECT_RECOMMENDATION") // PROJECT_RECOMMENDATION, DELIVERY_PLAN
+  status              String               @default("GENERATED") // GENERATED, REVIEW_REQUIRED, APPROVED, REJECTED, SUPERSEDED
+  confidence          String               @default("HIGH") // HIGH, MEDIUM, LOW
+
+  summary             String
+  aiExplanation       String?
+  disclaimer          String               @default("Final structural concrete grade and logistics plan must be verified and approved by a qualified engineer or plant dispatcher.")
+
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  user                User?                @relation(fields: [userId], references: [id])
+  project             Project?             @relation(fields: [projectId], references: [id])
+  order               Order?               @relation(fields: [orderId], references: [id])
+  items               RecommendationItem[]
+  deliveryPlans       DeliveryPlan[]
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([status])
+}
+
+model RecommendationItem {
+  id               String         @id @default(uuid()) @db.Uuid
+  recommendationId String         @db.Uuid
+  category         String         // CONCRETE_GRADE, PUMP_TYPE, TRUCK_COUNT, PLANT_SELECTION, DELIVERY_WINDOW, WEATHER_WINDOW, RISK_FACTOR
+  title            String
+  recommendedValue String
+  unit             String?
+  reason           String
+  confidence       String         @default("HIGH") // HIGH, MEDIUM, LOW
+  source           String         @default("DATABASE") // DATABASE, DETERMINISTIC_RULES, AI_REASONING, WEATHER_API, MAPS_API
+
+  createdAt        DateTime       @default(now())
+
+  recommendation   Recommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+}
+
+model DeliveryPlan {
+  id                     String          @id @default(uuid()) @db.Uuid
+  recommendationId       String?         @db.Uuid
+  projectId              String?         @db.Uuid
+  orderId                String?         @db.Uuid
+  plantId                String?         @db.Uuid
+  status                 String          @default("RECOMMENDED") // DRAFT, RECOMMENDED, PENDING_APPROVAL, APPROVED, SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED
+  priority               String          @default("NORMAL") // LOW, NORMAL, HIGH, CRITICAL
+
+  // Logistics Deterministic Calculations
+  requiredVolumeM3       Float
+  truckCapacityM3        Float           @default(6.0)
+  recommendedTruckCount  Int
+  estimatedTrips         Int
+  estimatedTravelTimeMins Int            @default(45)
+  distanceKm             Float           @default(15.0)
+
+  // Dispatch & Arrival Schedule
+  recommendedDispatchTime DateTime
+  recommendedArrivalStart DateTime
+  recommendedArrivalEnd   DateTime
+  pouringWindowMins      Int             @default(120)
+
+  // Weather & Traffic
+  weatherStatus          String          @default("GOOD_WINDOW") // GOOD_WINDOW, CAUTION, DELAY_RECOMMENDED, UNSUITABLE
+  weatherTempCelsius     Float?          @default(28.0)
+  rainProbabilityPercent Float?          @default(10.0)
+  trafficStatus          String          @default("CLEAR") // CLEAR, MODERATE, HEAVY
+
+  // Override Tracking
+  isOverridden           Boolean         @default(false)
+  overrideReason         String?
+  overriddenBy           String?
+  overriddenAt           DateTime?
+
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+
+  recommendation         Recommendation? @relation(fields: [recommendationId], references: [id])
+  project                Project?        @relation(fields: [projectId], references: [id])
+  order                  Order?          @relation(fields: [orderId], references: [id])
+  plant                  BatchingPlant?  @relation(fields: [plantId], references: [id])
+
+  @@index([status])
+  @@index([priority])
+}
+
+model WeatherSnapshot {
+  id                     String   @id @default(uuid()) @db.Uuid
+  location               String
+  temperatureCelsius     Float    @default(28.0)
+  humidityPercent        Float    @default(60.0)
+  rainProbabilityPercent Float    @default(10.0)
+  windSpeedKmh           Float    @default(12.0)
+  conditionStatus        String   @default("CLEAR") // CLEAR, CLOUDY, RAIN_WARNING, THUNDERSTORM
+
+  fetchedAt              DateTime @default(now())
+}
+
+model QualityPrediction {
+  id                    String   @id @default(uuid()) @db.Uuid
+  userId                String   @db.Uuid
+  projectId             String?  @db.Uuid
+  
+  // Input Mix Data
+  concreteGrade         String
+  cementKg              Float
+  waterKg               Float
+  fineAggregateKg       Float
+  coarseAggregateKg     Float
+  admixtureKg           Float    @default(0)
+  flyAshKg              Float?   @default(0)
+  ggbsKg                Float?   @default(0)
+  silicaFumeKg          Float?   @default(0)
+  
+  // Additional Parameters
+  waterCementRatio      Float
+  targetStrengthMpa     Float
+  ageDays               Int      @default(28)
+  slumpMm               Float?
+  ambientTempCelsius    Float?
+  curingCondition       String?  @default("STANDARD_WATER_CURING")
+  previousTestStrength  Float?
+  
+  // Calculated Engineering Features
+  totalBinderKg         Float
+  admixturePercent      Float
+  fineAggregatePercent  Float
+  coarseAggregatePercent Float
+  
+  // Prediction & Risk Results
+  predictedStrengthMpa  Float
+  strengthMarginMpa     Float
+  confidenceScorePercent Float
+  riskLevel             String   // LOW, MEDIUM, HIGH
+  modelVersion          String   @default("baseline-v1.0")
+  featureContributions  Json?
+  
+  // AI Explanation & Recommendations
+  summary               String?
+  keyFactors            String[]
+  risks                 String[]
+  recommendations       String[]
+  explanation           String?  @db.Text
+  aiStatus              String   @default("COMPLETED") // COMPLETED, FALLBACK, FAILED
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project               Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([riskLevel])
+  @@index([concreteGrade])
+}
+
+model OrderItem {
+  id                   String   @id @default(uuid()) @db.Uuid
+  orderId              String   @db.Uuid
+  concreteGrade        String   // e.g. M25, M30, M35
+  quantity             Float    // in m³
+  unit                 String   @default("M3")
+  mixRecommendationId  String?  @db.Uuid
+  unitPrice            Float    @default(4500)
+  subtotal             Float    @default(0)
+  notes                String?
+
+  createdAt            DateTime @default(now())
+
+  order                Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+model OrderStatusHistory {
+  id           String   @id @default(uuid()) @db.Uuid
+  orderId      String   @db.Uuid
+  fromStatus   String?
+  toStatus     String
+  changedById  String?  @db.Uuid
+  changedByName String?
+  role         String?
+  notes        String?
+
+  createdAt    DateTime @default(now())
+
+  order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+model OrderApproval {
+  id          String   @id @default(uuid()) @db.Uuid
+  orderId     String   @db.Uuid
+  approverId  String   @db.Uuid
+  role        String   // SALES_MANAGER, PLANT_MANAGER, OPERATIONS_MANAGER, ADMIN
+  action      String   // APPROVED, REJECTED, REQUEST_CHANGE
+  comments    String?
+
+  createdAt   DateTime @default(now())
+
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+model DeliverySchedule {
+  id               String   @id @default(uuid()) @db.Uuid
+  orderId          String   @db.Uuid
+  plantId          String?  @db.Uuid
+  scheduledDate    DateTime
+  estimatedArrival DateTime
+  actualArrival    DateTime?
+  quantityM3       Float
+  truckNumber      String?
+  driverName       String?
+  driverPhone      String?
+  status           String   @default("SCHEDULED") // SCHEDULED, DISPATCHED, IN_TRANSIT, ARRIVED, DELIVERED, CANCELLED
+  notes            String?
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  order            Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([status])
+}
+
+model OrderDocument {
+  id           String   @id @default(uuid()) @db.Uuid
+  orderId      String   @db.Uuid
+  documentType String   // PURCHASE_ORDER, CONTRACT, SITE_DRAWING, DELIVERY_INSTRUCTION, INVOICE, OTHER
+  fileName     String
+  fileUrl      String
+  fileSize     Int?
+  uploadedById String?  @db.Uuid
+  uploadedByName String?
+
+  createdAt    DateTime @default(now())
+
+  order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+model OrderComment {
+  id         String   @id @default(uuid()) @db.Uuid
+  orderId    String   @db.Uuid
+  userId     String   @db.Uuid
+  userName   String
+  userRole   String
+  message    String   @db.Text
+  isInternal Boolean  @default(false)
+
+  createdAt  DateTime @default(now())
+
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+model OrderNotification {
+  id          String   @id @default(uuid()) @db.Uuid
+  orderId     String   @db.Uuid
+  recipientId String   @db.Uuid
+  title       String
+  message     String
+  type        String   @default("INFO") // STATUS_CHANGE, APPROVAL, SCHEDULE, ALERT
+  isRead      Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([recipientId])
+}
+
+model ProductionPlan {
+  id                   String                @id @default(uuid()) @db.Uuid
+  planNumber           String                @unique // VRMC-PLAN-2026-00001
+  orderId              String                @db.Uuid
+  plantId              String                @db.Uuid
+  plannedQuantity      Float                 // in m³
+  concreteGrade        String                @default("M25")
+  status               String                @default("PLANNED") // PLANNED, SCHEDULED, READY, IN_PROGRESS, COMPLETED, FAILED, CANCELLED
+
+  scheduledDate        DateTime
+  scheduledStartTime   DateTime
+  scheduledEndTime     DateTime
+  actualStartTime      DateTime?
+  actualEndTime        DateTime?
+  
+  notes                String?
+  aiFeasibilityScore   Float?                @default(95.0)
+  aiBottleneckWarning  String?
+
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+
+  order                Order                 @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  plant                BatchingPlant         @relation(fields: [plantId], references: [id])
+  batches              ProductionBatch[]
+  consumptions         MaterialConsumption[]
+  logs                 ProductionLog[]
+  queues               ProductionQueue[]
+
+  @@index([orderId])
+  @@index([plantId])
+  @@index([status])
+  @@index([scheduledDate])
+}
+
+model ProductionBatch {
+  id                 String                @id @default(uuid()) @db.Uuid
+  productionPlanId   String                @db.Uuid
+  batchNumber        String                // e.g. "B-001"
+  concreteGrade      String
+  quantity           Float                 // in m³ (e.g. 6.0 m³)
+  mixingTimeSeconds  Int                   @default(120)
+  waterCementRatio   Float                 @default(0.45)
+  slumpMm            Float                 @default(120)
+  temperatureCelsius Float                 @default(28.0)
+  status             String                @default("PLANNED") // PLANNED, MIXING, BATCHED, LOADED, DISPATCHED, FAILED
+  
+  producedAt         DateTime?
+  operatorName       String?               @default("Plant Operator")
+  truckNumber        String?
+
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+
+  productionPlan     ProductionPlan        @relation(fields: [productionPlanId], references: [id], onDelete: Cascade)
+  consumptions       MaterialConsumption[]
+
+  @@index([productionPlanId])
+  @@index([status])
+}
+
+model PlantCapacity {
+  id                   String        @id @default(uuid()) @db.Uuid
+  plantId              String        @db.Uuid
+  date                 DateTime
+  hourSlot             Int?          // 0 to 23
+  maxCapacityM3        Float         @default(1500)
+  reservedCapacityM3   Float         @default(0)
+  utilizedCapacityM3   Float         @default(0)
+  availableCapacityM3  Float         @default(1500)
+  utilizationPercent   Float         @default(0)
+
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  plant                BatchingPlant @relation(fields: [plantId], references: [id], onDelete: Cascade)
+
+  @@index([plantId, date])
+}
+
+model MaterialConsumption {
+  id                String           @id @default(uuid()) @db.Uuid
+  productionPlanId  String?          @db.Uuid
+  productionBatchId String?          @db.Uuid
+  materialName      String           // OPC Cement, Fly Ash, Sand, 20mm Agg, 10mm Agg, Water, Admixture
+  category          String           // BINDER, AGGREGATE, WATER, ADMIXTURE
+  plannedQtyKg      Float
+  actualQtyKg       Float
+  varianceKg        Float            @default(0)
+  variancePercent   Float            @default(0)
+  unit              String           @default("KG")
+  costPerKg         Float            @default(5.0)
+
+  consumedAt        DateTime         @default(now())
+
+  productionPlan    ProductionPlan?  @relation(fields: [productionPlanId], references: [id], onDelete: Cascade)
+  productionBatch   ProductionBatch? @relation(fields: [productionBatchId], references: [id], onDelete: Cascade)
+
+  @@index([productionPlanId])
+  @@index([productionBatchId])
+  @@index([category])
+}
+
+model ProductionForecast {
+  id                    String        @id @default(uuid()) @db.Uuid
+  forecastDate          DateTime      @default(now())
+  forecastPeriod        String        @default("WEEKLY") // DAILY, WEEKLY, MONTHLY
+  predictedDemandM3     Float         @default(0)
+  highDemandWindows     String[]
+  peakGrade             String        @default("M25")
+  materialRequirements  Json?
+  capacityBottlenecks   String[]
+  aiRecommendations     String[]
+  confidenceScore       Float         @default(90.0)
+
+  generatedAt           DateTime      @default(now())
+
+  @@index([forecastPeriod])
+}
+
+model ProductionQueue {
+  id                String         @id @default(uuid()) @db.Uuid
+  plantId           String         @db.Uuid
+  productionPlanId  String         @db.Uuid
+  priority          String         @default("NORMAL") // LOW, NORMAL, HIGH, CRITICAL
+  queuePosition     Int            @default(1)
+  estimatedStart    DateTime
+  status            String         @default("WAITING") // WAITING, IN_PROGRESS, COMPLETED, BYPASSED
+
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  plant             BatchingPlant  @relation(fields: [plantId], references: [id], onDelete: Cascade)
+  productionPlan    ProductionPlan @relation(fields: [productionPlanId], references: [id], onDelete: Cascade)
+
+  @@index([plantId, status])
+}
+
+model ProductionLog {
+  id                String         @id @default(uuid()) @db.Uuid
+  productionPlanId  String         @db.Uuid
+  action            String         // PLAN_CREATED, BATCH_STARTED, BATCH_COMPLETED, CAPACITY_EXCEEDED, SHORTAGE_ALERT
+  performedBy       String         @default("System")
+  details           String
+  loggedAt          DateTime       @default(now())
+
+  productionPlan    ProductionPlan @relation(fields: [productionPlanId], references: [id], onDelete: Cascade)
+
+  @@index([productionPlanId])
+}
+
+model FleetVehicle {
+  id                  String             @id @default(uuid()) @db.Uuid
+  vehicleNumber       String             @unique // e.g. "MH-12-RN-8821"
+  vehicleType         String             @default("TRANSIT_MIXER") // TRANSIT_MIXER, BOOM_PUMP, LINE_PUMP, CEMENT_BULKER
+  capacity            Float              @default(6.0) // in m³
+  status              String             @default("AVAILABLE") // AVAILABLE, ASSIGNED, IN_TRANSIT, LOADING, UNLOADING, MAINTENANCE, OUT_OF_SERVICE
+  currentLocation     String?            @default("Central Plant (Hadapsar)")
+  currentLatitude     Float?
+  currentLongitude    Float?
+  fuelLevelPercent    Float?             @default(85.0)
+  odometerKm          Float?             @default(45200.0)
+  lastMaintenanceDate DateTime?
+  nextMaintenanceDue  DateTime?
+
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  trips               DeliveryTrip[]
+  drivers             Driver[]
+  maintenanceRecords  FleetMaintenance[]
+
+  @@index([status])
+  @@index([vehicleType])
+}
+
+model Driver {
+  id                String         @id @default(uuid()) @db.Uuid
+  employeeId        String         @unique // e.g. "DRV-0104"
+  name              String
+  phone             String
+  licenseNumber     String
+  licenseExpiry     DateTime?
+  status            String         @default("AVAILABLE") // AVAILABLE, ON_TRIP, OFF_DUTY, ON_LEAVE
+  assignedVehicleId String?        @db.Uuid
+  experienceYears   Int            @default(5)
+  rating            Float          @default(4.8)
+  totalDeliveries   Int            @default(0)
+
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  assignedVehicle   FleetVehicle?  @relation(fields: [assignedVehicleId], references: [id])
+  trips             DeliveryTrip[]
+
+  @@index([status])
+}
+
+model DeliveryTrip {
+  id                 String             @id @default(uuid()) @db.Uuid
+  tripNumber         String             @unique // e.g. "TRIP-2026-00001"
+  orderId            String             @db.Uuid
+  productionPlanId   String?            @db.Uuid
+  productionBatchId  String?            @db.Uuid
+  vehicleId          String             @db.Uuid
+  driverId           String             @db.Uuid
+  routeId            String?            @db.Uuid
+  status             String             @default("ASSIGNED") // ASSIGNED, DISPATCHED, IN_TRANSIT, ARRIVED_AT_SITE, UNLOADING, DELIVERED, CONFIRMED, CANCELLED
+
+  concreteGrade      String             @default("M25")
+  quantityM3         Float              @default(6.0)
+  originPlant        String             @default("Central Batching Plant (Hadapsar)")
+  destinationAddress String
+  destinationCity    String             @default("Pune")
+  destinationPincode String?
+  distanceKm         Float              @default(14.5)
+
+  dispatchTime       DateTime?
+  estimatedArrival   DateTime
+  actualArrival      DateTime?
+  completedAt        DateTime?
+  customerFeedback   String?
+  customerRating     Int?
+  aiEtaConfidence    Float?             @default(94.0)
+  aiTrafficDelayMins Int?               @default(0)
+
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  order              Order              @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  vehicle            FleetVehicle       @relation(fields: [vehicleId], references: [id])
+  driver             Driver             @relation(fields: [driverId], references: [id])
+  route              RoutePlan?         @relation(fields: [routeId], references: [id])
+  trackings          DeliveryTracking[]
+  issues             DeliveryIssue[]
+  etaForecasts       ETAForecast[]
+
+  @@index([orderId])
+  @@index([vehicleId])
+  @@index([driverId])
+  @@index([status])
+}
+
+model DeliveryTracking {
+  id           String       @id @default(uuid()) @db.Uuid
+  tripId       String       @db.Uuid
+  latitude     Float
+  longitude    Float
+  speedKmh     Float        @default(35.0)
+  status       String       // DISPATCHED, IN_TRANSIT, AT_SITE, UNLOADED
+  locationName String?
+  recordedAt   DateTime     @default(now())
+
+  trip         DeliveryTrip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
+}
+
+model RoutePlan {
+  id                   String         @id @default(uuid()) @db.Uuid
+  originPlant          String
+  destinationSite      String
+  distanceKm           Float
+  estimatedMinutes     Int
+  recommendedRouteName String         // e.g. "Via Kharadi Bypass / Pune-Ahmednagar Hwy"
+  alternativeRouteName String?
+  trafficRiskScore     Float          @default(20.0) // 0-100
+  roadCondition        String         @default("GOOD") // EXCELLENT, GOOD, MODERATE, CONGESTED, RESTRICTED
+  aiRecommendation     String?
+
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  trips                DeliveryTrip[]
+}
+
+model DeliveryIssue {
+  id              String       @id @default(uuid()) @db.Uuid
+  tripId          String       @db.Uuid
+  issueType       String       // TRAFFIC_DELAY, VEHICLE_BREAKDOWN, WEATHER_ISSUE, CUSTOMER_DELAY, SITE_ACCESS_PROBLEM, SLUMP_LOSS
+  severity        String       @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
+  description     String
+  delayMinutes    Int          @default(0)
+  isResolved      Boolean      @default(false)
+  resolutionNotes String?
+
+  reportedAt      DateTime     @default(now())
+  resolvedAt      DateTime?
+
+  trip            DeliveryTrip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
+  @@index([issueType])
+}
+
+model ETAForecast {
+  id                      String       @id @default(uuid()) @db.Uuid
+  tripId                  String       @db.Uuid
+  calculatedAt            DateTime     @default(now())
+  predictedEta            DateTime
+  delayProbabilityPercent Float        @default(10.0)
+  confidenceScore         Float        @default(92.0)
+  trafficFactor           String       @default("MODERATE") // LOW, MODERATE, HEAVY, SEVERE
+  aiExplanation           String?
+
+  trip                    DeliveryTrip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
+}
+
+model FleetMaintenance {
+  id              String       @id @default(uuid()) @db.Uuid
+  vehicleId       String       @db.Uuid
+  maintenanceType String       // ROUTINE_SERVICE, HYDRAULIC_DRUM_REPAIR, BRAKE_OVERHAUL, TYRE_REPLACEMENT, CHASSIS_INSPECTION
+  scheduledDate   DateTime
+  completedDate   DateTime?
+  status          String       @default("SCHEDULED") // SCHEDULED, IN_PROGRESS, COMPLETED, OVERDUE
+  cost            Float        @default(0)
+  technicianName  String?
+  notes           String?
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  vehicle         FleetVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@index([vehicleId])
+  @@index([status])
+}
+
+
+
+
+
+
+
+

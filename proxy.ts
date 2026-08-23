@@ -11,8 +11,11 @@ const rolePrefixMappings: Record<string, string> = {
   'Supplier': '/dashboard/supplier',
 };
 
+// Routes accessible across all authenticated roles
 const sharedDashboardRoutes = [
   '/dashboard/analytics',
+  '/dashboard/admin/analytics',
+  '/dashboard/admin/reports',
   '/dashboard/executive',
   '/dashboard/logistics',
   '/dashboard/plant',
@@ -44,12 +47,12 @@ export default async function proxy(request: NextRequest) {
       return NextResponse.next();
     }
 
-    // 4. Shared cross-functional executive & operations routes
+    // 4. Shared cross-functional executive, analytics & operations routes
     if (sharedDashboardRoutes.some(route => pathname.startsWith(route))) {
       return NextResponse.next();
     }
 
-    // 5. Prevent unauthorized cross-role access (e.g. Customer accessing /dashboard/admin)
+    // 5. Prevent unauthorized cross-role access (e.g. Customer accessing /dashboard/admin settings)
     if (!pathname.startsWith(allowedPrefix)) {
       return NextResponse.redirect(new URL('/403', request.url));
     }

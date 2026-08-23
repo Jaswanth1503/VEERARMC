@@ -4,13 +4,20 @@ import { getSession } from './lib/auth/session';
 
 const rolePrefixMappings: Record<string, string> = {
   'Admin': '/dashboard/admin',
+  'Super Admin': '/dashboard/admin',
   'Customer': '/dashboard/customer',
   'Contractor': '/dashboard/contractor',
   'Employee': '/dashboard/employee',
   'Supplier': '/dashboard/supplier',
 };
 
-const publicRoutes = ['/login', '/register', '/forgot-password', '/'];
+const sharedDashboardRoutes = [
+  '/dashboard/analytics',
+  '/dashboard/executive',
+  '/dashboard/logistics',
+  '/dashboard/plant',
+  '/dashboard/settings',
+];
 
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -24,20 +31,26 @@ export default async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
     
-    const userRole = session.role;
-    const allowedPrefix = rolePrefixMappings[userRole];
+    const userRole = session.role || 'Customer';
+    const allowedPrefix = rolePrefixMappings[userRole] || '/dashboard/customer';
 
     // 2. Base /dashboard route -> Redirect to role-specific portal
     if (pathname === '/dashboard') {
-      if (allowedPrefix) {
-        return NextResponse.redirect(new URL(allowedPrefix, request.url));
-      } else {
-        return NextResponse.redirect(new URL('/403', request.url));
-      }
+      return NextResponse.redirect(new URL(allowedPrefix, request.url));
     }
 
-    // 3. Prevent cross-role access (e.g. Customer accessing /dashboard/admin)
-    if (allowedPrefix && !pathname.startsWith(allowedPrefix)) {
+    // 3. Admin & Super Admin have unrestricted access to all dashboard routes
+    if (userRole === 'Admin' || userRole === 'Super Admin') {
+      return NextResponse.next();
+    }
+
+    // 4. Shared cross-functional executive & operations routes
+    if (sharedDashboardRoutes.some(route => pathname.startsWith(route))) {
+      return NextResponse.next();
+    }
+
+    // 5. Prevent unauthorized cross-role access (e.g. Customer accessing /dashboard/admin)
+    if (!pathname.startsWith(allowedPrefix)) {
       return NextResponse.redirect(new URL('/403', request.url));
     }
   }

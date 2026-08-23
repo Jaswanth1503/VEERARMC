@@ -1338,6 +1338,85 @@ model FleetMaintenance {
   @@index([status])
 }
 
+// ==========================================
+// PHASE 6A: BUSINESS INTELLIGENCE & EXECUTIVE ANALYTICS
+// ==========================================
+
+model ExecutiveReport {
+  id              String   @id @default(uuid()) @db.Uuid
+  reportType      String   // DAILY, WEEKLY, MONTHLY, QUARTERLY, ANNUAL
+  title           String
+  periodStart     DateTime
+  periodEnd       DateTime
+  totalRevenue    Float    @default(0)
+  totalVolumeM3   Float    @default(0)
+  totalOrders     Int      @default(0)
+  deliveredOrders Int      @default(0)
+  healthScore     Float    @default(88.0)
+  metricsJson     Json?    // Detailed revenue, orders, production, logistics breakdown
+  aiSummary       String?  // Gemini AI Executive Strategic Summary
+  actionItemsJson Json?    // Strategic AI leadership recommendations
+  generatedBy     String?  // User or System
+  downloadUrl     String?  // PDF / CSV export link
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([reportType])
+  @@index([periodStart, periodEnd])
+}
+
+model AnalyticsSnapshot {
+  id              String   @id @default(uuid()) @db.Uuid
+  snapshotDate    DateTime @default(now())
+  periodType      String   @default("DAILY") // HOURLY, DAILY, WEEKLY, MONTHLY
+  totalRevenue    Float    @default(0)
+  totalOrders     Int      @default(0)
+  totalVolumeM3   Float    @default(0)
+  deliveredOrders Int      @default(0)
+  healthScore     Float    @default(85.0)
+  onTimePercent   Float    @default(95.0)
+  plantUtilPercent Float   @default(65.0)
+  metricsJson     Json?
+
+  createdAt       DateTime @default(now())
+
+  @@index([snapshotDate])
+  @@index([periodType])
+}
+
+model ExecutiveAlert {
+  id          String   @id @default(uuid()) @db.Uuid
+  alertType   String   // REVENUE_DROP, DEMAND_SURGE, BOTTLENECK, DELIVERY_DELAY, HEALTH_CHANGE, INVENTORY_LOW
+  severity    String   @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
+  title       String
+  message     String
+  metricsJson Json?
+  isRead      Boolean  @default(false)
+  resolvedAt  DateTime?
+
+  createdAt   DateTime @default(now())
+
+  @@index([alertType])
+  @@index([severity])
+  @@index([isRead])
+}
+
+model AnalyticsAuditLog {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String?
+  action       String   // VIEW_DASHBOARD, GENERATE_REPORT, EXPORT_PDF, REFRESH_AI_INSIGHTS, FILTER_CHANGE
+  resourceType String   @default("EXECUTIVE_ANALYTICS")
+  metadataJson Json?
+  ipAddress    String?
+
+  createdAt    DateTime @default(now())
+
+  @@index([action])
+  @@index([createdAt])
+}
+
+
 
 
 

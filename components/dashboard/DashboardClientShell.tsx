@@ -14,6 +14,7 @@ import { ChatWidget } from "@/components/ai/ChatWidget";
 const roleMenus: Record<string, any[]> = {
   'Admin': [
     { label: "Dashboard", href: "/dashboard/admin", icon: <Home className="w-5 h-5" /> },
+    { label: "Executive BI Hub", href: "/analytics", icon: <BarChart3 className="w-5 h-5 text-emerald-400" /> },
     { label: "Orders Hub", href: "/orders", icon: <Package className="w-5 h-5 text-accent-orange" /> },
     { label: "Production Hub", href: "/production", icon: <Factory className="w-5 h-5 text-emerald-400" /> },
     { label: "Logistics Hub", href: "/logistics", icon: <Navigation className="w-5 h-5 text-sky-400" /> },

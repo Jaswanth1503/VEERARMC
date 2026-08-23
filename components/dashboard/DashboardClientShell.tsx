@@ -118,7 +118,7 @@ export default function DashboardClientShell({ children, role, user }: { childre
   };
 
   return (
-    <div className="flex h-screen bg-concrete-50 overflow-hidden relative">
+    <div className="flex h-screen bg-concrete-50 overflow-hidden relative" data-lenis-prevent="true">
       {/* Mobile Backdrop Overlay */}
       {isMobile && sidebarOpen && (
         <div 
@@ -129,6 +129,7 @@ export default function DashboardClientShell({ children, role, user }: { childre
 
       {/* Sidebar Drawer */}
       <aside 
+        data-lenis-prevent="true"
         className={`${
           sidebarOpen 
             ? "w-64 translate-x-0" 
@@ -156,7 +157,7 @@ export default function DashboardClientShell({ children, role, user }: { childre
           </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1 scrollbar-thin scrollbar-thumb-concrete-800">
+        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1 scrollbar-thin scrollbar-thumb-concrete-800" data-lenis-prevent="true">
           {fullNavItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -190,7 +191,7 @@ export default function DashboardClientShell({ children, role, user }: { childre
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden relative min-w-0">
+      <div className="flex-1 flex flex-col overflow-hidden relative min-w-0" data-lenis-prevent="true">
         {/* Top Navbar */}
         <header className="h-16 bg-white/80 backdrop-blur-md border-b border-concrete-200 flex items-center justify-between px-4 md:px-6 z-30 sticky top-0 shrink-0">
           <div className="flex items-center gap-3">
@@ -241,7 +242,10 @@ export default function DashboardClientShell({ children, role, user }: { childre
         </header>
 
         {/* Dashboard Dynamic Page Area */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-concrete-50">
+        <main 
+          className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-concrete-50 overscroll-contain"
+          data-lenis-prevent="true"
+        >
           <div className="max-w-7xl mx-auto space-y-6">
             {children}
           </div>

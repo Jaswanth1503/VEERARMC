@@ -1,35 +1,38 @@
 "use client";
-import { Suspense } from "react";
-import dynamic from "next/dynamic";
-import { ArrowRight, MessageSquare } from "lucide-react";
+
+import { ArrowRight, MessageSquare, ShieldCheck, Truck, Zap, Activity } from "lucide-react";
 import { motion } from "framer-motion";
-
-// Removed HeroScene to use the static background image
-// const HeroScene = dynamic(() => import("./HeroScene"), ...);
-
 import Link from "next/link";
 
 export default function Hero() {
   return (
-    <section className="relative w-full h-screen min-h-[800px] overflow-hidden bg-gradient-to-b from-concrete-50 to-pure-white pt-20">
-      <div className="absolute inset-0 z-0">
+    <section className="relative w-full min-h-screen flex flex-col justify-center overflow-hidden bg-gradient-to-b from-concrete-50 via-white to-pure-white pt-28 pb-16">
+      {/* Background Decor */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-15 mix-blend-multiply" 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10 mix-blend-multiply" 
           style={{ backgroundImage: "url('/hero-bg.png')" }}
         />
-        <div className="absolute inset-0 bg-pure-white/70" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-white" />
+        <div className="absolute top-1/4 right-10 w-96 h-96 bg-orange-500/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-1/4 left-10 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
       </div>
       
-      <div className="container mx-auto px-4 md:px-8 h-full relative z-10 flex flex-col justify-center pointer-events-none">
-        <div className="max-w-3xl pointer-events-auto">
+      <div className="container mx-auto px-4 md:px-8 relative z-10 my-auto">
+        <div className="max-w-3xl space-y-6 animate-in fade-in zoom-in-95 duration-500">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-orange/10 border border-accent-orange/20 text-accent-orange text-xs font-bold tracking-wide">
+            <Zap className="w-3.5 h-3.5" /> Next-Gen AI Ready Mix Concrete Management
+          </div>
+
           <motion.h1 
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="text-5xl md:text-7xl font-bold tracking-tight text-charcoal-black mb-6 leading-tight"
+            transition={{ duration: 0.6 }}
+            className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tight text-charcoal-black leading-[1.1]"
           >
             Building Tomorrow.<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-steel-blue-600 to-accent-orange">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#DA291C] via-accent-orange to-[#008C45]">
               Delivering Strength Today.
             </span>
           </motion.h1>
@@ -37,75 +40,75 @@ export default function Hero() {
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="text-lg md:text-xl text-charcoal-black/90 font-medium mb-10 max-w-2xl leading-relaxed"
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="text-base sm:text-lg md:text-xl text-concrete-700 font-medium max-w-2xl leading-relaxed"
           >
-            Veera RMC delivers high-quality ready mix concrete with AI-assisted planning, faster delivery, reliable logistics, and enterprise-grade quality assurance.
+            Veera RMC delivers high-precision IS 456 / IS 10262 certified ready mix concrete with AI-assisted batching, real-time fleet telemetry, instant quotes, and executive intelligence.
           </motion.p>
           
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="flex flex-col sm:flex-row gap-4"
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="flex flex-wrap items-center gap-3 sm:gap-4 pt-2"
           >
-            <Link href="/quote" className="px-8 py-4 bg-charcoal-black text-pure-white rounded-md font-medium flex items-center justify-center gap-2 hover:bg-concrete-900 transition-all shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] hover:-translate-y-1 hover:shadow-[0_15px_50px_-10px_rgba(0,0,0,0.6)] group">
-              Get Instant Quote
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
             <Link 
-              href="/#projects" 
-              onClick={(e) => {
-                const el = document.getElementById('projects');
-                if (el) {
-                  e.preventDefault();
-                  el.scrollIntoView({ behavior: 'smooth' });
-                }
-              }}
-              className="px-8 py-4 bg-pure-white/80 backdrop-blur-md border border-concrete-200 text-charcoal-black rounded-md font-medium flex items-center justify-center gap-2 hover:bg-pure-white transition-all hover:-translate-y-1 hover:shadow-lg cursor-pointer"
+              href="/quote" 
+              className="px-7 py-3.5 bg-charcoal-black hover:bg-black text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-xl hover:-translate-y-0.5 transition-all group"
             >
-              Explore Projects
+              Get Instant Quote
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform text-accent-orange" />
             </Link>
-            <Link href="/ai-assistant" className="px-8 py-4 bg-transparent text-steel-blue-600 rounded-md font-medium flex items-center justify-center gap-2 hover:bg-steel-blue-50 transition-all group">
-              <MessageSquare className="w-5 h-5 group-hover:scale-110 transition-transform text-accent-orange" />
+
+            <Link 
+              href="/analytics" 
+              className="px-6 py-3.5 bg-white border-2 border-concrete-200 hover:border-charcoal-black text-charcoal-black rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-xs hover:-translate-y-0.5 transition-all"
+            >
+              <Activity className="w-4 h-4 text-emerald-600" />
+              Executive BI Hub
+            </Link>
+
+            <Link 
+              href="/ai-assistant" 
+              className="px-6 py-3.5 bg-concrete-100 hover:bg-concrete-200 text-charcoal-black rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all"
+            >
+              <MessageSquare className="w-4 h-4 text-accent-orange" />
               Talk to AI Engineer
             </Link>
           </motion.div>
           
+          {/* Key Metrics Strip */}
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 0.8 }}
-            className="mt-16 flex flex-wrap gap-8 md:gap-12"
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 border-t border-concrete-200/80"
           >
             <div>
-              <p className="text-3xl font-bold text-charcoal-black">25+</p>
-              <p className="text-sm text-concrete-700 font-bold uppercase tracking-wider mt-1">Years Exp</p>
+              <p className="text-2xl sm:text-3xl font-black text-charcoal-black">25+</p>
+              <p className="text-xs text-concrete-500 font-extrabold uppercase tracking-wider mt-0.5">Years Exp</p>
             </div>
             <div>
-              <p className="text-3xl font-bold text-charcoal-black">1.2k</p>
-              <p className="text-sm text-concrete-700 font-bold uppercase tracking-wider mt-1">Projects</p>
+              <p className="text-2xl sm:text-3xl font-black text-charcoal-black">1.2k+</p>
+              <p className="text-xs text-concrete-500 font-extrabold uppercase tracking-wider mt-0.5">Projects</p>
             </div>
             <div>
-              <p className="text-3xl font-bold text-charcoal-black">99%</p>
-              <p className="text-sm text-concrete-700 font-bold uppercase tracking-wider mt-1">Happy Clients</p>
+              <p className="text-2xl sm:text-3xl font-black text-emerald-600">99.4%</p>
+              <p className="text-xs text-concrete-500 font-extrabold uppercase tracking-wider mt-0.5">On-Time Delivery</p>
             </div>
             <div>
-              <p className="text-3xl font-bold text-charcoal-black">500+</p>
-              <p className="text-sm text-concrete-700 font-bold uppercase tracking-wider mt-1">Daily Deliveries</p>
+              <p className="text-2xl sm:text-3xl font-black text-accent-orange">500+</p>
+              <p className="text-xs text-concrete-500 font-extrabold uppercase tracking-wider mt-0.5">Daily m³ Batched</p>
             </div>
           </motion.div>
         </div>
       </div>
       
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center cursor-pointer opacity-70 hover:opacity-100 transition-opacity">
-        <span className="text-xs font-medium text-concrete-600 mb-2 uppercase tracking-widest">Scroll</span>
-        <div className="w-6 h-10 border-2 border-concrete-400 rounded-full flex justify-center p-1">
-          <motion.div 
-            animate={{ y: [0, 16, 0] }}
-            transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-            className="w-1.5 h-1.5 bg-accent-orange rounded-full"
-          />
+      {/* Scroll indicator */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 hidden md:flex flex-col items-center opacity-60 hover:opacity-100 transition-opacity">
+        <span className="text-[10px] font-black text-concrete-400 uppercase tracking-widest mb-1">Scroll Down</span>
+        <div className="w-5 h-8 border-2 border-concrete-300 rounded-full flex justify-center p-1">
+          <div className="w-1 h-2 bg-accent-orange rounded-full animate-bounce" />
         </div>
       </div>
     </section>

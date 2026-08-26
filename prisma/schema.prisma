@@ -1416,6 +1416,66 @@ model AnalyticsAuditLog {
   @@index([createdAt])
 }
 
+// ==========================================
+// PHASE 6B: AI FORECASTING & DECISION INTELLIGENCE
+// ==========================================
+
+model ForecastRecord {
+  id              String   @id @default(uuid()) @db.Uuid
+  forecastType    String   // DEMAND, REVENUE, MATERIAL, CAPACITY, LOGISTICS, CUSTOMER
+  targetDate      DateTime
+  horizonDays     Int      @default(30) // 7, 30, 90, 365
+  predictedValue  Float
+  bestCaseValue   Float?
+  worstCaseValue  Float?
+  unit            String   // m3, INR, Tons, %, Trips, Count
+  confidenceLevel String   @default("HIGH") // HIGH, MEDIUM, LOW
+  confidenceScore Float    @default(92.0)
+  explanation     String?
+  actualValue     Float?
+  variancePercent Float?
+  metadataJson    Json?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([forecastType])
+  @@index([targetDate])
+  @@index([confidenceLevel])
+}
+
+model WhatIfSimulation {
+  id             String   @id @default(uuid()) @db.Uuid
+  simulationName String
+  description    String?
+  parametersJson Json     // demandDeltaPercent, plantExpansionM3, fleetDelta, rawMaterialCostDeltaPercent
+  resultsJson    Json     // projectedRevenue, projectedMargin, bottleneckWarning, fleetLoadPercent
+  createdById    String?
+  
+  createdAt      DateTime @default(now())
+
+  @@index([simulationName])
+  @@index([createdAt])
+}
+
+model DecisionIntelligenceReport {
+  id             String   @id @default(uuid()) @db.Uuid
+  title          String
+  reportHorizon  String   @default("30D") // 7D, 30D, 90D, ANNUAL
+  scenariosJson  Json?    // Best, Expected, Worst case models
+  risksJson      Json?    // Revenue, Material, Logistics risks
+  opportunitiesJson Json? // Market expansion, capacity optimization
+  aiBriefing     String?  // Gemini strategic synthesis
+  generatedBy    String?  @default("AI Decision Engine")
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([reportHorizon])
+  @@index([createdAt])
+}
+
+
 
 
 

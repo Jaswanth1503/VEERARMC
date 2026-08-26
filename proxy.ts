@@ -13,6 +13,9 @@ const rolePrefixMappings: Record<string, string> = {
 
 // Routes accessible across all authenticated roles
 const sharedDashboardRoutes = [
+  '/dashboard/forecasting',
+  '/dashboard/admin/forecasting',
+  '/dashboard/executive/forecasting',
   '/dashboard/analytics',
   '/dashboard/admin/analytics',
   '/dashboard/admin/reports',

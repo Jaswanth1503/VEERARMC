@@ -1547,6 +1547,113 @@ model SystemHealthSnapshot {
   @@index([createdAt])
 }
 
+// ==========================================
+// PHASE 6D: DIGITAL TWIN, SIMULATION & ENTERPRISE OPTIMIZATION
+// ==========================================
+
+model DigitalTwin {
+  id               String   @id @default(uuid()) @db.Uuid
+  twinName         String   @default("Veera Virtual Enterprise Mirror")
+  baselineDataJson Json     // Orders, Plants, Mixers, Silos, Financial run-rate
+  syncedAt         DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([syncedAt])
+}
+
+model Scenario {
+  id                      String   @id @default(uuid()) @db.Uuid
+  scenarioCode            String   @unique // SCENARIO_A, SCENARIO_B, etc.
+  title                   String
+  description             String
+  demandDeltaPercent      Float    @default(0)
+  plantExpansionM3        Float    @default(0)
+  fleetDelta              Int      @default(0)
+  materialCostDeltaPercent Float   @default(0)
+  sellingPriceDeltaPercent Float   @default(0)
+  customerLossPercent     Float    @default(0)
+  isPreset                Boolean  @default(true)
+
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@index([scenarioCode])
+}
+
+model SimulationRun {
+  id                          String   @id @default(uuid()) @db.Uuid
+  scenarioName                String
+  parametersJson              Json     // Applied demand, fleet, cost, price deltas
+  projectedRevenueINR         Float
+  revenueDeltaINR             Float
+  projectedGrossMarginPercent Float
+  marginDeltaPercent          Float
+  projectedPlantUtilization   Float
+  plantBottleneckPercent      Float    @default(0)
+  projectedFleetUtilization   Float
+  fleetDeficitCount           Int      @default(0)
+  aiAnalysisJson              Json?    // Gemini strategic impact analysis
+  runById                     String?
+
+  createdAt                   DateTime @default(now())
+
+  @@index([scenarioName])
+  @@index([createdAt])
+}
+
+model ScenarioResult {
+  id                  String   @id @default(uuid()) @db.Uuid
+  simulationRunId     String   @db.Uuid
+  revenueScore        Float    @default(90.0)
+  operationalScore    Float    @default(90.0)
+  capacityScore       Float    @default(90.0)
+  logisticsScore      Float    @default(90.0)
+  riskScore           Float    @default(15.0)
+  resilienceScore     Float    @default(88.0)
+  financialBreakdownJson Json?
+  operationalBreakdownJson Json?
+  riskRadarJson       Json?
+
+  createdAt           DateTime @default(now())
+
+  @@index([simulationRunId])
+}
+
+model OptimizationRecommendation {
+  id                  String   @id @default(uuid()) @db.Uuid
+  area                String   // PRODUCTION, LOGISTICS, INVENTORY, FLEET, REVENUE, PROCESS
+  title               String
+  currentInefficiency String
+  optimizedState      String
+  expectedSavingsINR  Float
+  roiPercent          Float    @default(25.0)
+  confidenceScore     Float    @default(92.0)
+  status              String   @default("IDENTIFIED") // IDENTIFIED, ADOPTED, ARCHIVED, EXECUTED
+  adoptedById         String?
+  adoptedAt           DateTime?
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([area])
+  @@index([status])
+}
+
+model TwinEvent {
+  id           String   @id @default(uuid()) @db.Uuid
+  eventType    String   // SIMULATION_EXECUTED, SCENARIO_SAVED, OPTIMIZATION_ADOPTED, TWIN_SYNCED
+  description  String
+  payloadJson  Json?
+  userId       String?
+
+  createdAt    DateTime @default(now())
+
+  @@index([eventType])
+  @@index([createdAt])
+}
+
+
 
 
 

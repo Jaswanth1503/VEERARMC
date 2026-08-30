@@ -5,7 +5,7 @@ import Link from "next/link";
 import { 
   Bell, Search, Menu, X, Home, Package, Users, Truck, 
   Settings, LogOut, FileText, BarChart3, Building,
-  Briefcase, FileSpreadsheet, Headset, HardHat, CheckSquare, Clock, Sparkles, Layers, FlaskConical, Factory, Navigation, TrendingUp
+  Briefcase, FileSpreadsheet, Headset, HardHat, CheckSquare, Clock, Sparkles, Layers, FlaskConical, Factory, Navigation, TrendingUp, ShieldAlert
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { ChatWidget } from "@/components/ai/ChatWidget";
@@ -14,6 +14,7 @@ import { ChatWidget } from "@/components/ai/ChatWidget";
 const roleMenus: Record<string, any[]> = {
   'Admin': [
     { label: "Dashboard", href: "/dashboard/admin", icon: <Home className="w-5 h-5" /> },
+    { label: "AI Command Center", href: "/command-center", icon: <ShieldAlert className="w-5 h-5 text-red-500" /> },
     { label: "AI Forecasting Hub", href: "/forecasting", icon: <TrendingUp className="w-5 h-5 text-amber-400" /> },
     { label: "Executive BI Hub", href: "/analytics", icon: <BarChart3 className="w-5 h-5 text-emerald-400" /> },
     { label: "Orders Hub", href: "/orders", icon: <Package className="w-5 h-5 text-accent-orange" /> },
@@ -35,6 +36,7 @@ const roleMenus: Record<string, any[]> = {
   ],
   'Customer': [
     { label: "Dashboard", href: "/dashboard/customer", icon: <Home className="w-5 h-5" /> },
+    { label: "AI Command Center", href: "/command-center", icon: <ShieldAlert className="w-5 h-5 text-red-500" /> },
     { label: "AI Forecasting Hub", href: "/forecasting", icon: <TrendingUp className="w-5 h-5 text-amber-400" /> },
     { label: "Executive BI Hub", href: "/analytics", icon: <BarChart3 className="w-5 h-5 text-emerald-400" /> },
     { label: "Orders Hub", href: "/orders", icon: <Package className="w-5 h-5 text-accent-orange" /> },
@@ -53,6 +55,7 @@ const roleMenus: Record<string, any[]> = {
   ],
   'Contractor': [
     { label: "Dashboard", href: "/dashboard/contractor", icon: <Home className="w-5 h-5" /> },
+    { label: "AI Command Center", href: "/command-center", icon: <ShieldAlert className="w-5 h-5 text-red-500" /> },
     { label: "AI Forecasting Hub", href: "/forecasting", icon: <TrendingUp className="w-5 h-5 text-amber-400" /> },
     { label: "Executive BI Hub", href: "/analytics", icon: <BarChart3 className="w-5 h-5 text-emerald-400" /> },
     { label: "Orders Hub", href: "/orders", icon: <Package className="w-5 h-5 text-accent-orange" /> },

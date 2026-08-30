@@ -1475,6 +1475,79 @@ model DecisionIntelligenceReport {
   @@index([createdAt])
 }
 
+// ==========================================
+// PHASE 6C: AI AUTONOMOUS OPERATIONS & COMMAND CENTER
+// ==========================================
+
+model CommandCenterAlert {
+  id            String   @id @default(uuid()) @db.Uuid
+  category      String   // ORDERS, PRODUCTION, INVENTORY, LOGISTICS, REVENUE, FORECASTING, SYSTEM
+  severity      String   @default("WARNING") // CRITICAL, WARNING, INFO
+  title         String
+  description   String
+  rootCauseJson Json?    // Likely cause, affected modules, confidence
+  impactSummary String?
+  isResolved    Boolean  @default(false)
+  resolvedAt    DateTime?
+  resolvedById  String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([category])
+  @@index([severity])
+  @@index([isResolved])
+}
+
+model AutonomousRecommendation {
+  id              String   @id @default(uuid()) @db.Uuid
+  domain          String   // SALES, OPERATIONS, PRODUCTION, LOGISTICS, PROCUREMENT, FINANCE, EXECUTIVE
+  title           String
+  reason          String
+  expectedImpact  String
+  confidenceScore Float    @default(90.0)
+  requiredAction  String
+  status          String   @default("PENDING_APPROVAL") // PENDING_APPROVAL, APPROVED, REJECTED, EXECUTED
+  approvedById    String?
+  approvedAt      DateTime?
+  executionLogJson Json?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([domain])
+  @@index([status])
+}
+
+model ExecutiveBriefing {
+  id             String   @id @default(uuid()) @db.Uuid
+  briefingType   String   @default("MORNING") // MORNING, AFTERNOON, EOD, WEEKLY, MONTHLY
+  headline       String
+  content        String
+  keyMetricsJson Json?
+  actionItemsJson Json?
+  risksJson      Json?
+  opportunitiesJson Json?
+  generatedBy    String   @default("Veera Operations Copilot")
+
+  createdAt      DateTime @default(now())
+
+  @@index([briefingType])
+  @@index([createdAt])
+}
+
+model SystemHealthSnapshot {
+  id                  String   @id @default(uuid()) @db.Uuid
+  overallHealthScore  Float    @default(95.0)
+  componentScoresJson Json     // revenue, operations, production, logistics, customer, inventory
+  servicesStatusJson  Json     // api, database, aiEngine, queue, storage
+
+  createdAt           DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+
 
 
 

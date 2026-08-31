@@ -5,14 +5,16 @@ import Link from "next/link";
 import { 
   Cpu, Sparkles, RefreshCw, Play, Sliders, TrendingUp, Layers, 
   Factory, Truck, Package, ShieldCheck, Download, AlertTriangle, 
-  CheckCircle2, DollarSign, Activity, Check, ArrowUpRight, ArrowDownRight, Flame
+  CheckCircle2, DollarSign, Activity, Check, ArrowUpRight, ArrowDownRight, Flame,
+  FileText, BarChart3, Clock, Compass, ShieldAlert, Target, Zap
 } from "lucide-react";
 import { 
   DigitalTwinBaseline, 
   ScenarioParameters, 
   SimulationResultMetrics, 
   EnterpriseHeatmap, 
-  SelfOptimizationSuggestion 
+  SelfOptimizationSuggestion,
+  StrategicBriefingReport
 } from "@/lib/digital-twin/types/digital-twin";
 
 export default function DigitalTwinHub() {
@@ -34,7 +36,12 @@ export default function DigitalTwinHub() {
   const [simulationResult, setSimulationResult] = useState<SimulationResultMetrics | null>(null);
   const [optimizations, setOptimizations] = useState<SelfOptimizationSuggestion[]>([]);
   const [heatmaps, setHeatmaps] = useState<Record<string, EnterpriseHeatmap>>({});
-  const [activeHeatmapTab, setActiveHeatmapTab] = useState<"CAPACITY" | "DEMAND" | "RISK">("CAPACITY");
+  const [activeHeatmapTab, setActiveHeatmapTab] = useState<"CAPACITY" | "DEMAND" | "REVENUE" | "RISK" | "OPERATIONAL">("CAPACITY");
+
+  // Strategic Briefing State
+  const [activeBriefingType, setActiveBriefingType] = useState<"GROWTH" | "RISK" | "EXPANSION" | "OPTIMIZATION">("GROWTH");
+  const [strategicBriefing, setStrategicBriefing] = useState<StrategicBriefingReport | null>(null);
+  const [loadingBriefing, setLoadingBriefing] = useState(false);
 
   const [simulating, setSimulating] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -42,6 +49,7 @@ export default function DigitalTwinHub() {
 
   useEffect(() => {
     fetchInitialTwinData();
+    fetchBriefing("GROWTH");
   }, []);
 
   const fetchInitialTwinData = async () => {
@@ -74,6 +82,22 @@ export default function DigitalTwinHub() {
       console.error(e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchBriefing = async (type: "GROWTH" | "RISK" | "EXPANSION" | "OPTIMIZATION") => {
+    setLoadingBriefing(true);
+    setActiveBriefingType(type);
+    try {
+      const res = await fetch(`/api/digital-twin/briefing?type=${type}`);
+      if (res.ok) {
+        const data = await res.json();
+        setStrategicBriefing(data.report);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingBriefing(false);
     }
   };
 
@@ -127,13 +151,15 @@ export default function DigitalTwinHub() {
       baseline,
       simulationResult,
       optimizations,
+      strategicBriefing,
+      heatmaps,
       generatedAt: new Date().toISOString()
     };
     const blob = new Blob([JSON.stringify(packet, null, 2)], { type: "application/json" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `Veera_Digital_Twin_Simulation_${simulationResult.scenarioName.replace(/\s+/g, "_")}_${Date.now()}.json`;
+    a.download = `Veera_Digital_Twin_Dossier_${simulationResult.scenarioName.replace(/[^a-zA-Z0-9]/g, "_")}_${Date.now()}.json`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -148,7 +174,7 @@ export default function DigitalTwinHub() {
             <span className="px-2.5 py-1 bg-purple-500/10 text-purple-600 font-black text-xs rounded-lg tracking-wider">
               DIGITAL TWIN & SIMULATION PLATFORM
             </span>
-            <span className="text-xs text-concrete-500 font-semibold">• Virtual Enterprise Mirror</span>
+            <span className="text-xs text-concrete-500 font-semibold">• Virtual Enterprise Sandbox</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-black text-charcoal-black tracking-tight flex items-center gap-2">
             <Cpu className="w-7 h-7 text-purple-600" /> Digital Twin Scenario Lab
@@ -419,6 +445,111 @@ export default function DigitalTwinHub() {
         </div>
       )}
 
+      {/* Enterprise AI Optimization Scores (Requirement 18) */}
+      {simulationResult?.scores && (
+        <div className="bg-white p-6 rounded-3xl border border-concrete-200 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-concrete-100 pb-3">
+            <div className="flex items-center gap-2">
+              <Activity className="w-5 h-5 text-purple-600" />
+              <h3 className="font-black text-base text-charcoal-black">AI Optimization Scores & Business Readiness</h3>
+            </div>
+            <span className="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-black rounded-xl">
+              Readiness: {simulationResult.scores.businessReadinessScore}/100
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="p-3.5 bg-concrete-50 rounded-2xl border border-concrete-200">
+              <span className="text-[10px] font-bold text-concrete-500 uppercase block">Efficiency Score</span>
+              <div className="text-xl font-black text-charcoal-black mt-1">{simulationResult.scores.efficiencyScore}%</div>
+              <div className="w-full bg-concrete-200 h-1.5 rounded-full mt-2 overflow-hidden">
+                <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${simulationResult.scores.efficiencyScore}%` }} />
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-concrete-50 rounded-2xl border border-concrete-200">
+              <span className="text-[10px] font-bold text-concrete-500 uppercase block">Optimization Score</span>
+              <div className="text-xl font-black text-purple-600 mt-1">{simulationResult.scores.optimizationScore}%</div>
+              <div className="w-full bg-concrete-200 h-1.5 rounded-full mt-2 overflow-hidden">
+                <div className="bg-purple-600 h-full rounded-full" style={{ width: `${simulationResult.scores.optimizationScore}%` }} />
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-concrete-50 rounded-2xl border border-concrete-200">
+              <span className="text-[10px] font-bold text-concrete-500 uppercase block">Growth Score</span>
+              <div className="text-xl font-black text-emerald-700 mt-1">{simulationResult.scores.growthScore}%</div>
+              <div className="w-full bg-concrete-200 h-1.5 rounded-full mt-2 overflow-hidden">
+                <div className="bg-emerald-600 h-full rounded-full" style={{ width: `${simulationResult.scores.growthScore}%` }} />
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-concrete-50 rounded-2xl border border-concrete-200">
+              <span className="text-[10px] font-bold text-concrete-500 uppercase block">Scalability Score</span>
+              <div className="text-xl font-black text-sky-600 mt-1">{simulationResult.scores.scalabilityScore}%</div>
+              <div className="w-full bg-concrete-200 h-1.5 rounded-full mt-2 overflow-hidden">
+                <div className="bg-sky-500 h-full rounded-full" style={{ width: `${simulationResult.scores.scalabilityScore}%` }} />
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-concrete-50 rounded-2xl border border-concrete-200">
+              <span className="text-[10px] font-bold text-concrete-500 uppercase block">Resilience Score</span>
+              <div className="text-xl font-black text-accent-orange mt-1">{simulationResult.scores.resilienceScore}%</div>
+              <div className="w-full bg-concrete-200 h-1.5 rounded-full mt-2 overflow-hidden">
+                <div className="bg-accent-orange h-full rounded-full" style={{ width: `${simulationResult.scores.resilienceScore}%` }} />
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-concrete-50 rounded-2xl border border-concrete-200">
+              <span className="text-[10px] font-bold text-concrete-500 uppercase block">Readiness Score</span>
+              <div className="text-xl font-black text-purple-900 mt-1">{simulationResult.scores.businessReadinessScore}%</div>
+              <div className="w-full bg-concrete-200 h-1.5 rounded-full mt-2 overflow-hidden">
+                <div className="bg-purple-900 h-full rounded-full" style={{ width: `${simulationResult.scores.businessReadinessScore}%` }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Enterprise Best Operating Plans (Requirement 7) */}
+      {simulationResult?.bestPlans && (
+        <div className="bg-white p-6 rounded-3xl border border-concrete-200 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-concrete-100 pb-3">
+            <div className="flex items-center gap-2">
+              <Target className="w-5 h-5 text-emerald-600" />
+              <h3 className="font-black text-base text-charcoal-black">AI Enterprise Optimal Operating Plans</h3>
+            </div>
+            <span className="text-xs text-concrete-500 font-bold">5 Core Execution Vectors</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+            <div className="p-4 bg-concrete-50 rounded-2xl border border-concrete-200 space-y-1">
+              <span className="text-[10px] font-black text-emerald-700 uppercase tracking-wider block">Best Production Plan</span>
+              <p className="text-concrete-700 font-semibold leading-relaxed">{simulationResult.bestPlans.bestProductionPlan}</p>
+            </div>
+
+            <div className="p-4 bg-concrete-50 rounded-2xl border border-concrete-200 space-y-1">
+              <span className="text-[10px] font-black text-sky-700 uppercase tracking-wider block">Best Dispatch Plan</span>
+              <p className="text-concrete-700 font-semibold leading-relaxed">{simulationResult.bestPlans.bestDispatchPlan}</p>
+            </div>
+
+            <div className="p-4 bg-concrete-50 rounded-2xl border border-concrete-200 space-y-1">
+              <span className="text-[10px] font-black text-amber-700 uppercase tracking-wider block">Best Inventory Plan</span>
+              <p className="text-concrete-700 font-semibold leading-relaxed">{simulationResult.bestPlans.bestInventoryPlan}</p>
+            </div>
+
+            <div className="p-4 bg-concrete-50 rounded-2xl border border-concrete-200 space-y-1">
+              <span className="text-[10px] font-black text-purple-700 uppercase tracking-wider block">Best Fleet Allocation</span>
+              <p className="text-concrete-700 font-semibold leading-relaxed">{simulationResult.bestPlans.bestFleetAllocation}</p>
+            </div>
+
+            <div className="p-4 bg-concrete-50 rounded-2xl border border-concrete-200 space-y-1 md:col-span-2">
+              <span className="text-[10px] font-black text-accent-orange uppercase tracking-wider block">Best Capacity Allocation</span>
+              <p className="text-concrete-700 font-semibold leading-relaxed">{simulationResult.bestPlans.bestCapacityAllocation}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Gemini AI Strategic Impact Analysis Card */}
       {simulationResult && (
         <div className="bg-purple-950 text-white p-6 md:p-8 rounded-3xl shadow-xl space-y-4">
@@ -458,25 +589,25 @@ export default function DigitalTwinHub() {
         </div>
       )}
 
-      {/* 2-Col: Enterprise Heatmaps & Self-Optimizing Recommendations */}
+      {/* 2-Col: Enterprise Heatmaps (All 5) & Self-Optimizing Recommendations */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Col: Enterprise Heatmaps */}
+        {/* Left Col: Enterprise Heatmaps (All 5 Types) */}
         <div className="bg-white p-6 rounded-3xl border border-concrete-200 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-concrete-100 pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-concrete-100 pb-3 gap-2">
             <div>
               <h3 className="font-black text-base text-charcoal-black flex items-center gap-2">
                 <Flame className="w-5 h-5 text-accent-orange" /> Enterprise Operational Heatmaps
               </h3>
-              <p className="text-xs text-concrete-500 font-medium">Correlated spatial and time-series density</p>
+              <p className="text-xs text-concrete-500 font-medium">5 Correlated Spatial & Time-Series Matrices</p>
             </div>
 
-            {/* Heatmap Tabs */}
-            <div className="flex items-center bg-concrete-100 p-1 rounded-xl">
-              {(["CAPACITY", "DEMAND", "RISK"] as const).map(tab => (
+            {/* All 5 Heatmap Tabs: Requirement 17 */}
+            <div className="flex items-center bg-concrete-100 p-1 rounded-xl flex-wrap">
+              {(["CAPACITY", "DEMAND", "REVENUE", "RISK", "OPERATIONAL"] as const).map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveHeatmapTab(tab)}
-                  className={`px-2.5 py-1 text-[10px] font-black rounded-lg transition-all ${
+                  className={`px-2 py-1 text-[9px] font-black rounded-lg transition-all ${
                     activeHeatmapTab === tab ? "bg-white text-charcoal-black shadow-xs" : "text-concrete-500"
                   }`}
                 >
@@ -512,7 +643,7 @@ export default function DigitalTwinHub() {
           )}
         </div>
 
-        {/* Right Col: Self-Optimizing Enterprise Engine */}
+        {/* Right Col: Self-Optimizing Enterprise Engine (Requirement 8, 15, 19) */}
         <div className="bg-white p-6 rounded-3xl border border-concrete-200 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-concrete-100 pb-3">
             <div>
@@ -521,7 +652,7 @@ export default function DigitalTwinHub() {
               </h3>
               <p className="text-xs text-concrete-500 font-medium">Quantified efficiency improvements with verified ROI</p>
             </div>
-            <span className="text-xs font-black text-emerald-700">₹88.5L Total Identified Upside</span>
+            <span className="text-xs font-black text-emerald-700">₹88.5L Identified Upside</span>
           </div>
 
           <div className="space-y-3">
@@ -548,6 +679,21 @@ export default function DigitalTwinHub() {
                   <p className="text-xs text-concrete-600 mt-0.5 font-medium">{opt.optimizedState}</p>
                 </div>
 
+                {/* Requirement 15: Expected Benefits, Risks, Cost, Revenue Impact */}
+                <div className="grid grid-cols-2 gap-2 pt-1 text-[10px] font-semibold bg-white p-2.5 rounded-xl border border-concrete-200">
+                  <div>
+                    <span className="text-concrete-500 block">Expected Revenue Impact:</span>
+                    <span className="text-emerald-700 font-black">+₹{(opt.expectedRevenueImpactINR / 100000).toFixed(1)} Lakhs</span>
+                  </div>
+                  <div>
+                    <span className="text-concrete-500 block">Implementation Cost:</span>
+                    <span className="text-charcoal-black font-bold">₹{(opt.expectedCostINR / 1000).toFixed(0)}K</span>
+                  </div>
+                  <div className="col-span-2 text-concrete-600">
+                    <span className="text-emerald-700 font-bold">Key Benefit:</span> {opt.expectedBenefits?.[0] || "Optimizes resource allocation"}
+                  </div>
+                </div>
+
                 <div className="flex items-center justify-between pt-1 border-t border-concrete-200/60 text-xs">
                   <span className="text-[10px] text-concrete-500 font-bold">ROI: +{opt.roiPercent}% ({opt.confidenceScore}% conf)</span>
                   {opt.status === "IDENTIFIED" ? (
@@ -568,6 +714,66 @@ export default function DigitalTwinHub() {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* AI Strategic Briefings Panel (Requirement 21) */}
+      <div className="bg-white p-6 rounded-3xl border border-concrete-200 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-concrete-100 pb-3 gap-2">
+          <div className="flex items-center gap-2">
+            <FileText className="w-5 h-5 text-purple-600" />
+            <div>
+              <h3 className="font-black text-base text-charcoal-black">Executive Strategic Briefings</h3>
+              <p className="text-xs text-concrete-500 font-medium">Synthesized Board-Level Strategy & Decision Intelligence</p>
+            </div>
+          </div>
+
+          <div className="flex items-center bg-concrete-100 p-1 rounded-xl">
+            {(["GROWTH", "RISK", "EXPANSION", "OPTIMIZATION"] as const).map(type => (
+              <button
+                key={type}
+                onClick={() => fetchBriefing(type)}
+                className={`px-3 py-1 text-[10px] font-black rounded-lg transition-all ${
+                  activeBriefingType === type ? "bg-white text-purple-700 shadow-xs" : "text-concrete-500"
+                }`}
+              >
+                {type} REPORT
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {strategicBriefing && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="font-black text-sm text-charcoal-black">{strategicBriefing.title}</h4>
+              <span className="text-[10px] font-bold text-concrete-400">{strategicBriefing.timeline}</span>
+            </div>
+
+            <p className="text-xs text-concrete-700 leading-relaxed font-medium bg-concrete-50 p-4 rounded-2xl border border-concrete-200">
+              {strategicBriefing.executiveSummary}
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div className="p-4 bg-purple-50 rounded-2xl border border-purple-200 space-y-2">
+                <span className="text-[10px] font-black text-purple-800 uppercase tracking-wider block">Key Projections</span>
+                {strategicBriefing.keyProjections.map((p, idx) => (
+                  <div key={idx} className="flex items-start gap-1.5 text-purple-950 font-semibold">
+                    <span className="text-purple-600 font-bold">•</span> <span>{p}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 space-y-2">
+                <span className="text-[10px] font-black text-emerald-800 uppercase tracking-wider block">Recommended Executive Decisions</span>
+                {strategicBriefing.recommendedDecisions.map((d, idx) => (
+                  <div key={idx} className="flex items-start gap-1.5 text-emerald-950 font-semibold">
+                    <span className="text-emerald-600 font-bold">•</span> <span>{d}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

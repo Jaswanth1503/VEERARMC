@@ -28,6 +28,23 @@ export interface ScenarioParameters {
   customerLossPercent: number;       // e.g. 15% key account churn
 }
 
+export interface AIOptimizationScores {
+  efficiencyScore: number;     // 0 - 100
+  optimizationScore: number;   // 0 - 100
+  growthScore: number;         // 0 - 100
+  scalabilityScore: number;    // 0 - 100
+  resilienceScore: number;     // 0 - 100
+  businessReadinessScore: number; // 0 - 100
+}
+
+export interface EnterpriseBestPlans {
+  bestProductionPlan: string;
+  bestDispatchPlan: string;
+  bestInventoryPlan: string;
+  bestFleetAllocation: string;
+  bestCapacityAllocation: string;
+}
+
 export interface SimulationResultMetrics {
   simulationId: string;
   scenarioName: string;
@@ -43,6 +60,8 @@ export interface SimulationResultMetrics {
   projectedFleetUtilizationPercent: number;
   fleetShortageCount: number;
   overallResilienceScore: number;
+  scores: AIOptimizationScores;
+  bestPlans: EnterpriseBestPlans;
   aiStrategicInsights: {
     executiveVerdict: string;
     operationalFeasibility: "HIGH" | "MODERATE" | "RISKY" | "UNFEASIBLE";
@@ -75,8 +94,22 @@ export interface SelfOptimizationSuggestion {
   currentInefficiency: string;
   optimizedState: string;
   expectedAnnualSavingsINR: number;
+  expectedRevenueImpactINR: number;
+  expectedCostINR: number;
   roiPercent: number;
   confidenceScore: number;
+  expectedBenefits: string[];
+  expectedRisks: string[];
   status: "IDENTIFIED" | "ADOPTED" | "ARCHIVED" | "EXECUTED";
   actionPlan: string;
+}
+
+export interface StrategicBriefingReport {
+  reportType: "GROWTH" | "RISK" | "EXPANSION" | "OPTIMIZATION";
+  title: string;
+  executiveSummary: string;
+  keyProjections: string[];
+  recommendedDecisions: string[];
+  timeline: string;
+  generatedAt: string;
 }

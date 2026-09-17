@@ -5,7 +5,7 @@ import Link from "next/link";
 import { 
   Bell, Search, Menu, X, Home, Package, Users, Truck, 
   Settings, LogOut, FileText, BarChart3, Building,
-  Briefcase, FileSpreadsheet, Headset, HardHat, CheckSquare, Clock, Sparkles, Layers, FlaskConical, Factory, Navigation, TrendingUp, ShieldAlert, Cpu
+  Briefcase, FileSpreadsheet, Headset, HardHat, CheckSquare, Clock, Sparkles, Layers, FlaskConical, Factory, Navigation, TrendingUp, ShieldAlert, Cpu, Activity
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { ChatWidget } from "@/components/ai/ChatWidget";
@@ -14,6 +14,8 @@ import { ChatWidget } from "@/components/ai/ChatWidget";
 const roleMenus: Record<string, any[]> = {
   'Admin': [
     { label: "Dashboard", href: "/dashboard/admin", icon: <Home className="w-5 h-5" /> },
+    { label: "Projects Hub", href: "/projects", icon: <Building className="w-5 h-5 text-accent-orange" /> },
+    { label: "PM Command Deck", href: "/dashboard/project-manager", icon: <Activity className="w-5 h-5 text-emerald-400" /> },
     { label: "Digital Twin Lab", href: "/digital-twin", icon: <Cpu className="w-5 h-5 text-purple-400" /> },
     { label: "AI Command Center", href: "/command-center", icon: <ShieldAlert className="w-5 h-5 text-red-500" /> },
     { label: "AI Forecasting Hub", href: "/forecasting", icon: <TrendingUp className="w-5 h-5 text-amber-400" /> },
@@ -29,7 +31,7 @@ const roleMenus: Record<string, any[]> = {
     { label: "Quote Generator", href: "/quote", icon: <FileSpreadsheet className="w-5 h-5 text-accent-orange" /> },
     { label: "Quotations", href: "/dashboard/admin/quotes", icon: <FileText className="w-5 h-5" /> },
     { label: "Admin Orders", href: "/dashboard/admin/orders", icon: <Package className="w-5 h-5" /> },
-    { label: "Projects", href: "/dashboard/admin/projects", icon: <Building className="w-5 h-5" /> },
+    { label: "Projects", href: "/projects", icon: <Building className="w-5 h-5" /> },
     { label: "Fleet", href: "/dashboard/admin/fleet", icon: <Truck className="w-5 h-5" /> },
     { label: "Users", href: "/dashboard/admin/users", icon: <Users className="w-5 h-5" /> },
     { label: "Inventory", href: "/dashboard/admin/inventory", icon: <Briefcase className="w-5 h-5" /> },
@@ -37,6 +39,7 @@ const roleMenus: Record<string, any[]> = {
   ],
   'Customer': [
     { label: "Dashboard", href: "/dashboard/customer", icon: <Home className="w-5 h-5" /> },
+    { label: "Projects Hub", href: "/projects", icon: <Building className="w-5 h-5 text-accent-orange" /> },
     { label: "Digital Twin Lab", href: "/digital-twin", icon: <Cpu className="w-5 h-5 text-purple-400" /> },
     { label: "AI Command Center", href: "/command-center", icon: <ShieldAlert className="w-5 h-5 text-red-500" /> },
     { label: "AI Forecasting Hub", href: "/forecasting", icon: <TrendingUp className="w-5 h-5 text-amber-400" /> },
@@ -57,6 +60,7 @@ const roleMenus: Record<string, any[]> = {
   ],
   'Contractor': [
     { label: "Dashboard", href: "/dashboard/contractor", icon: <Home className="w-5 h-5" /> },
+    { label: "Projects Hub", href: "/projects", icon: <Building className="w-5 h-5 text-accent-orange" /> },
     { label: "Digital Twin Lab", href: "/digital-twin", icon: <Cpu className="w-5 h-5 text-purple-400" /> },
     { label: "AI Command Center", href: "/command-center", icon: <ShieldAlert className="w-5 h-5 text-red-500" /> },
     { label: "AI Forecasting Hub", href: "/forecasting", icon: <TrendingUp className="w-5 h-5 text-amber-400" /> },

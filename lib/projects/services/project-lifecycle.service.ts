@@ -295,10 +295,10 @@ export class ProjectLifecycleService {
       };
     }
 
-    const delayedMilestonesCount = project.milestones.filter(m => m.status === "DELAYED").length;
-    const criticalRisksCount = project.risks.filter(r => r.severity === "CRITICAL" && r.status !== "RESOLVED").length;
-    const highRisksCount = project.risks.filter(r => r.severity === "HIGH" && r.status !== "RESOLVED").length;
-    const deliveredOrdersCount = project.orders.filter(o => o.status === "COMPLETED" || o.status === "DELIVERED").length;
+    const delayedMilestonesCount = project.milestones.filter((m: any) => m.status === "DELAYED").length;
+    const criticalRisksCount = project.risks.filter((r: any) => r.severity === "CRITICAL" && r.status !== "RESOLVED").length;
+    const highRisksCount = project.risks.filter((r: any) => r.severity === "HIGH" && r.status !== "RESOLVED").length;
+    const deliveredOrdersCount = project.orders.filter((o: any) => o.status === "COMPLETED" || o.status === "DELIVERED").length;
 
     const health = ProjectHealthService.calculateHealth({
       progressPercentage: project.progressPercentage,
@@ -312,7 +312,7 @@ export class ProjectLifecycleService {
       targetDate: project.targetDate
     });
 
-    const totalVolumeM3 = project.orders.reduce((acc, curr) => acc + (curr.totalQuantity || 0), 0);
+    const totalVolumeM3 = project.orders.reduce((acc: number, curr: any) => acc + (curr.totalQuantity || 0), 0);
 
     return {
       id: project.id,
@@ -336,7 +336,7 @@ export class ProjectLifecycleService {
       contractorName: project.contractor?.fullName || null,
       projectManagerId: project.projectManagerId,
 
-      phases: project.phases.map(p => ({
+      phases: project.phases.map((p: any) => ({
         id: p.id,
         projectId: p.projectId,
         phaseName: p.phaseName,
@@ -347,7 +347,7 @@ export class ProjectLifecycleService {
         progress: p.progress
       })),
 
-      milestones: project.milestones.map(m => ({
+      milestones: project.milestones.map((m: any) => ({
         id: m.id,
         projectId: m.projectId,
         title: m.title,
@@ -361,7 +361,7 @@ export class ProjectLifecycleService {
         orderId: m.orderId
       })),
 
-      tasks: project.tasks.map(t => ({
+      tasks: project.tasks.map((t: any) => ({
         id: t.id,
         projectId: t.projectId,
         milestoneId: t.milestoneId,
@@ -377,7 +377,7 @@ export class ProjectLifecycleService {
         actualHours: t.actualHours
       })),
 
-      assignments: project.assignments.map(a => ({
+      assignments: project.assignments.map((a: any) => ({
         id: a.id,
         projectId: a.projectId,
         userId: a.userId,
@@ -387,7 +387,7 @@ export class ProjectLifecycleService {
         assignedAt: a.assignedAt.toISOString()
       })),
 
-      budgets: project.budgets.map(b => ({
+      budgets: project.budgets.map((b: any) => ({
         id: b.id,
         projectId: b.projectId,
         category: b.category as any,
@@ -396,7 +396,7 @@ export class ProjectLifecycleService {
         variance: b.variance
       })),
 
-      risks: project.risks.map(r => ({
+      risks: project.risks.map((r: any) => ({
         id: r.id,
         projectId: r.projectId,
         riskType: r.riskType as any,
@@ -408,7 +408,7 @@ export class ProjectLifecycleService {
         status: r.status as any
       })),
 
-      documents: project.documents.map(d => ({
+      documents: project.documents.map((d: any) => ({
         id: d.id,
         projectId: d.projectId,
         documentType: d.documentType as any,
@@ -420,7 +420,7 @@ export class ProjectLifecycleService {
         createdAt: d.createdAt.toISOString()
       })),
 
-      activities: project.activities.map(a => ({
+      activities: project.activities.map((a: any) => ({
         id: a.id,
         projectId: a.projectId,
         activityType: a.activityType as any,
@@ -431,7 +431,7 @@ export class ProjectLifecycleService {
         createdAt: a.createdAt.toISOString()
       })),
 
-      timelines: project.timelines.map(tl => ({
+      timelines: project.timelines.map((tl: any) => ({
         id: tl.id,
         projectId: tl.projectId,
         eventType: tl.eventType,

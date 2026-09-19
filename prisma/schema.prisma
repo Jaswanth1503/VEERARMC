@@ -1850,15 +1850,18 @@ model ProjectTimeline {
   @@index([eventDate])
 }
 
+model CustomerFeedback {
+  id           String    @id @default(uuid()) @db.Uuid
+  customerId   String    @db.Uuid
+  customerName String?
+  orderId      String?   @db.Uuid
+  rating       Int       // 1 to 5
+  category     String    // DELIVERY, QUALITY, DRIVER, BILLING, OVERALL
+  comments     String?
+  sentiment    String?   // POSITIVE, NEUTRAL, NEGATIVE
+  createdAt    DateTime  @default(now())
 
-
-
-
-
-
-
-
-
-
-
+  @@index([customerId])
+  @@index([rating])
+}
 

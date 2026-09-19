@@ -45,9 +45,14 @@ export default async function CustomerDashboard() {
           <h1 className="text-2xl font-bold text-charcoal-black">Customer Portal</h1>
           <p className="text-concrete-500">Track your concrete orders and active projects.</p>
         </div>
-        <a href="/quote" className="bg-accent-orange text-white px-5 py-2.5 rounded-lg font-medium hover:bg-orange-600 transition-colors shadow-sm inline-block">
-          Place New Order
-        </a>
+        <div className="flex items-center gap-2">
+          <a href="/portal" className="bg-sky-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-sky-700 transition-colors shadow-sm inline-block">
+            Launch Full Portal ↗
+          </a>
+          <a href="/quote" className="bg-accent-orange text-white px-5 py-2.5 rounded-lg font-medium hover:bg-orange-600 transition-colors shadow-sm inline-block">
+            Place New Order
+          </a>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

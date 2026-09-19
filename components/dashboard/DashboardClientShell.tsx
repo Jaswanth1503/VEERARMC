@@ -5,7 +5,7 @@ import Link from "next/link";
 import { 
   Bell, Search, Menu, X, Home, Package, Users, Truck, 
   Settings, LogOut, FileText, BarChart3, Building,
-  Briefcase, FileSpreadsheet, Headset, HardHat, CheckSquare, Clock, Sparkles, Layers, FlaskConical, Factory, Navigation, TrendingUp, ShieldAlert, Cpu, Activity
+  Briefcase, FileSpreadsheet, Headset, HardHat, CheckSquare, Clock, Sparkles, Layers, FlaskConical, Factory, Navigation, TrendingUp, ShieldAlert, Cpu, Activity, Globe, CreditCard
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { ChatWidget } from "@/components/ai/ChatWidget";
@@ -14,6 +14,7 @@ import { ChatWidget } from "@/components/ai/ChatWidget";
 const roleMenus: Record<string, any[]> = {
   'Admin': [
     { label: "Dashboard", href: "/dashboard/admin", icon: <Home className="w-5 h-5" /> },
+    { label: "Customer Portal", href: "/portal", icon: <Globe className="w-5 h-5 text-sky-400" /> },
     { label: "Projects Hub", href: "/projects", icon: <Building className="w-5 h-5 text-accent-orange" /> },
     { label: "PM Command Deck", href: "/dashboard/project-manager", icon: <Activity className="w-5 h-5 text-emerald-400" /> },
     { label: "Digital Twin Lab", href: "/digital-twin", icon: <Cpu className="w-5 h-5 text-purple-400" /> },
@@ -38,6 +39,7 @@ const roleMenus: Record<string, any[]> = {
     { label: "Reports", href: "/dashboard/admin/reports", icon: <BarChart3 className="w-5 h-5" /> },
   ],
   'Customer': [
+    { label: "Customer Portal", href: "/portal", icon: <Globe className="w-5 h-5 text-sky-400" /> },
     { label: "Dashboard", href: "/dashboard/customer", icon: <Home className="w-5 h-5" /> },
     { label: "Projects Hub", href: "/projects", icon: <Building className="w-5 h-5 text-accent-orange" /> },
     { label: "Digital Twin Lab", href: "/digital-twin", icon: <Cpu className="w-5 h-5 text-purple-400" /> },
@@ -45,20 +47,18 @@ const roleMenus: Record<string, any[]> = {
     { label: "AI Forecasting Hub", href: "/forecasting", icon: <TrendingUp className="w-5 h-5 text-amber-400" /> },
     { label: "Executive BI Hub", href: "/analytics", icon: <BarChart3 className="w-5 h-5 text-emerald-400" /> },
     { label: "Orders Hub", href: "/orders", icon: <Package className="w-5 h-5 text-accent-orange" /> },
-    { label: "Live Deliveries", href: "/logistics", icon: <Navigation className="w-5 h-5 text-sky-400" /> },
+    { label: "Live Deliveries", href: "/portal/deliveries", icon: <Navigation className="w-5 h-5 text-sky-400" /> },
+    { label: "Document Vault", href: "/portal/documents", icon: <FileText className="w-5 h-5 text-emerald-400" /> },
+    { label: "Invoices", href: "/portal/invoices", icon: <CreditCard className="w-5 h-5 text-amber-400" /> },
+    { label: "Support & Care", href: "/portal/support", icon: <Headset className="w-5 h-5 text-purple-400" /> },
     { label: "AI Assistant", href: "/ai-assistant", icon: <Sparkles className="w-5 h-5 text-amber-400" /> },
     { label: "Recommendation Engine", href: "/recommendations", icon: <Truck className="w-5 h-5 text-sky-400" /> },
     { label: "Blueprint Analyzer", href: "/blueprint-analyzer", icon: <Layers className="w-5 h-5 text-emerald-400" /> },
     { label: "Quality Predictor", href: "/quality-predictor", icon: <FlaskConical className="w-5 h-5 text-purple-400" /> },
-    { label: "My Blueprints", href: "/dashboard/customer/blueprints", icon: <FileText className="w-5 h-5" /> },
     { label: "Quote Generator", href: "/quote", icon: <FileSpreadsheet className="w-5 h-5 text-accent-orange" /> },
-    { label: "My Quotes", href: "/dashboard/customer/quotes", icon: <FileText className="w-5 h-5" /> },
-    { label: "My Orders", href: "/dashboard/customer/orders", icon: <Package className="w-5 h-5" /> },
-    { label: "Deliveries", href: "/dashboard/customer/deliveries", icon: <Truck className="w-5 h-5" /> },
-    { label: "Invoices", href: "/dashboard/customer/invoices", icon: <FileText className="w-5 h-5" /> },
-    { label: "Support", href: "/dashboard/customer/support", icon: <Headset className="w-5 h-5" /> },
   ],
   'Contractor': [
+    { label: "Customer Portal", href: "/portal", icon: <Globe className="w-5 h-5 text-sky-400" /> },
     { label: "Dashboard", href: "/dashboard/contractor", icon: <Home className="w-5 h-5" /> },
     { label: "Projects Hub", href: "/projects", icon: <Building className="w-5 h-5 text-accent-orange" /> },
     { label: "Digital Twin Lab", href: "/digital-twin", icon: <Cpu className="w-5 h-5 text-purple-400" /> },
@@ -66,7 +66,9 @@ const roleMenus: Record<string, any[]> = {
     { label: "AI Forecasting Hub", href: "/forecasting", icon: <TrendingUp className="w-5 h-5 text-amber-400" /> },
     { label: "Executive BI Hub", href: "/analytics", icon: <BarChart3 className="w-5 h-5 text-emerald-400" /> },
     { label: "Orders Hub", href: "/orders", icon: <Package className="w-5 h-5 text-accent-orange" /> },
-    { label: "Logistics", href: "/logistics", icon: <Navigation className="w-5 h-5 text-sky-400" /> },
+    { label: "Live Deliveries", href: "/portal/deliveries", icon: <Navigation className="w-5 h-5 text-sky-400" /> },
+    { label: "Document Vault", href: "/portal/documents", icon: <FileText className="w-5 h-5 text-emerald-400" /> },
+    { label: "Invoices", href: "/portal/invoices", icon: <CreditCard className="w-5 h-5 text-amber-400" /> },
     { label: "AI Assistant", href: "/ai-assistant", icon: <Sparkles className="w-5 h-5 text-amber-400" /> },
     { label: "Recommendation Engine", href: "/recommendations", icon: <Truck className="w-5 h-5 text-sky-400" /> },
     { label: "Blueprint Analyzer", href: "/blueprint-analyzer", icon: <Layers className="w-5 h-5 text-emerald-400" /> },
@@ -74,7 +76,6 @@ const roleMenus: Record<string, any[]> = {
     { label: "My Projects", href: "/dashboard/contractor/projects", icon: <HardHat className="w-5 h-5" /> },
     { label: "Site Blueprints", href: "/dashboard/contractor/blueprints", icon: <FileText className="w-5 h-5" /> },
     { label: "Quote Generator", href: "/quote", icon: <FileSpreadsheet className="w-5 h-5 text-accent-orange" /> },
-    { label: "Quick Order", href: "/dashboard/contractor/order", icon: <Package className="w-5 h-5" /> },
     { label: "Orders", href: "/dashboard/contractor/orders", icon: <CheckSquare className="w-5 h-5" /> },
     { label: "Invoices", href: "/dashboard/contractor/invoices", icon: <FileText className="w-5 h-5" /> },
   ],
